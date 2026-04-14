@@ -1,0 +1,133 @@
+{% extends 'user/base.html' %}
+
+{% block title %}Create Routine - Athletix{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="user-info">
+            <h1>Create Training Routine 📋</h1>
+            <p>For {{ athlete.user.first_name }} {{ athlete.user.last_name }}</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'home' %}" class="btn-logout">🏠 Home</a>
+            <a href="{% url 'coach:athlete_detail' athlete.id %}" class="btn-logout">Back to Athlete</a>
+            <a href="{% url 'coach:dashboard' %}" class="btn-logout">Dashboard</a>
+        </div>
+    </div>
+
+    <div class="dashboard-body">
+        {% if messages %}
+        <div class="messages-container" style="margin-bottom: 20px;">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                <span>{{ message }}</span>
+                <button class="alert-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="info-card" style="padding: 30px; max-width: 700px;">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="title" style="display: block; margin-bottom: 8px; color: var(--gray-700); font-weight: 500;">
+                        Routine Title *
+                    </label>
+                    <input type="text" id="title" name="title" required
+                           class="form-input" placeholder="e.g., Morning Cardio Session"
+                           style="width: 100%; padding: 12px 15px; border: 1px solid var(--gray-300); border-radius: var(--radius);">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label for="sport" style="display: block; margin-bottom: 8px; color: var(--gray-700); font-weight: 500;">
+                            Sport *
+                        </label>
+                        <select id="sport" name="sport" required
+                                style="width: 100%; padding: 12px 15px; border: 1px solid var(--gray-300); border-radius: var(--radius);">
+                            <option value="">Select a sport</option>
+                            {% for sport in sports %}
+                            <option value="{{ sport.id }}">{{ sport.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="day_of_week" style="display: block; margin-bottom: 8px; color: var(--gray-700); font-weight: 500;">
+                            Day of Week *
+                        </label>
+                        <select id="day_of_week" name="day_of_week" required
+                                style="width: 100%; padding: 12px 15px; border: 1px solid var(--gray-300); border-radius: var(--radius);">
+                            <option value="">Select a day</option>
+                            <option value="monday">Monday</option>
+                            <option value="tuesday">Tuesday</option>
+                            <option value="wednesday">Wednesday</option>
+                            <option value="thursday">Thursday</option>
+                            <option value="friday">Friday</option>
+                            <option value="saturday">Saturday</option>
+                            <option value="sunday">Sunday</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label for="start_time" style="display: block; margin-bottom: 8px; color: var(--gray-700); font-weight: 500;">
+                            Start Time *
+                        </label>
+                        <input type="time" id="start_time" name="start_time" required
+                               style="width: 100%; padding: 12px 15px; border: 1px solid var(--gray-300); border-radius: var(--radius);">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="end_time" style="display: block; margin-bottom: 8px; color: var(--gray-700); font-weight: 500;">
+                            End Time *
+                        </label>
+                        <input type="time" id="end_time" name="end_time" required
+                               style="width: 100%; padding: 12px 15px; border: 1px solid var(--gray-300); border-radius: var(--radius);">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="description" style="display: block; margin-bottom: 8px; color: var(--gray-700); font-weight: 500;">
+                        Description
+                    </label>
+                    <textarea id="description" name="description" rows="3"
+                              style="width: 100%; padding: 12px 15px; border: 1px solid var(--gray-300); border-radius: var(--radius); resize: vertical;"
+                              placeholder="Brief description of the routine..."></textarea>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="exercises" style="display: block; margin-bottom: 8px; color: var(--gray-700); font-weight: 500;">
+                        Exercises
+                    </label>
+                    <textarea id="exercises" name="exercises" rows="5"
+                              style="width: 100%; padding: 12px 15px; border: 1px solid var(--gray-300); border-radius: var(--radius); resize: vertical;"
+                              placeholder="List the exercises, sets, reps, etc..."></textarea>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 25px;">
+                    <label for="notes" style="display: block; margin-bottom: 8px; color: var(--gray-700); font-weight: 500;">
+                        Notes for Athlete
+                    </label>
+                    <textarea id="notes" name="notes" rows="3"
+                              style="width: 100%; padding: 12px 15px; border: 1px solid var(--gray-300); border-radius: var(--radius); resize: vertical;"
+                              placeholder="Any additional notes or instructions..."></textarea>
+                </div>
+
+                <div style="display: flex; gap: 15px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        Create Routine
+                    </button>
+                    <a href="{% url 'coach:athlete_detail' athlete.id %}" class="btn btn-primary" style="flex: 1; background: var(--gray-500); text-align: center;">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

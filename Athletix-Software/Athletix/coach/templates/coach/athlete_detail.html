@@ -1,0 +1,170 @@
+{% extends 'user/base.html' %}
+
+{% block title %}{{ athlete.user.first_name }} {{ athlete.user.last_name }} - Athletix{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="user-info">
+            <h1>{{ athlete.user.first_name }} {{ athlete.user.last_name }} 🏃</h1>
+            <p>Athlete Details</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'coach:my_athletes' %}" class="btn-logout">All Athletes</a>
+            <a href="{% url 'coach:dashboard' %}" class="btn-logout">Dashboard</a>
+        </div>
+    </div>
+
+    <div class="dashboard-body">
+        {% if messages %}
+        <div class="messages-container" style="margin-bottom: 20px;">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                <span>{{ message }}</span>
+                <button class="alert-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
+            <!-- Athlete Profile Card -->
+            <div>
+                <div class="info-card" style="padding: 30px; text-align: center;">
+                    <div style="width: 100px; height: 100px; background: var(--secondary); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: white;">
+                        {{ athlete.user.first_name|slice:":1" }}{{ athlete.user.last_name|slice:":1" }}
+                    </div>
+                    <h2 style="color: var(--gray-900);">{{ athlete.user.first_name }} {{ athlete.user.last_name }}</h2>
+                    <p style="color: var(--gray-500);">{{ athlete.user.email }}</p>
+                    
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--gray-200);">
+                        <a href="{% url 'coach:create_routine' athlete.id %}" class="btn btn-primary" style="width: 100%;">
+                            + Create New Routine
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Athlete Info -->
+                {% if athlete.date_of_birth or athlete.height or athlete.weight %}
+                <div class="info-card" style="padding: 25px; margin-top: 20px;">
+                    <h4 style="color: var(--gray-700); margin-bottom: 15px;">Physical Info</h4>
+                    {% if athlete.date_of_birth %}
+                    <div style="margin-bottom: 10px;">
+                        <label style="color: var(--gray-500); font-size: 12px;">Date of Birth</label>
+                        <p style="color: var(--gray-900);">{{ athlete.date_of_birth }}</p>
+                    </div>
+                    {% endif %}
+                    {% if athlete.height %}
+                    <div style="margin-bottom: 10px;">
+                        <label style="color: var(--gray-500); font-size: 12px;">Height</label>
+                        <p style="color: var(--gray-900);">{{ athlete.height }}</p>
+                    </div>
+                    {% endif %}
+                    {% if athlete.weight %}
+                    <div>
+                        <label style="color: var(--gray-500); font-size: 12px;">Weight</label>
+                        <p style="color: var(--gray-900);">{{ athlete.weight }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Sports -->
+                {% if athlete_sports %}
+                <div class="info-card" style="padding: 25px; margin-top: 20px;">
+                    <h4 style="color: var(--gray-700); margin-bottom: 15px;">Selected Sports</h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        {% for as in athlete_sports %}
+                        <span style="background: var(--primary); color: white; padding: 6px 14px; border-radius: 20px; font-size: 13px;">
+                            {{ as.sport.name }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Routines Section -->
+            <div>
+                <div class="info-card" style="padding: 25px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="color: var(--gray-900);">Training Routines</h3>
+                        <a href="{% url 'coach:create_routine' athlete.id %}" style="color: var(--primary); font-size: 14px;">+ Add New</a>
+                    </div>
+
+                    {% if routines %}
+                    <div style="display: grid; gap: 15px;">
+                        {% regroup routines by day_of_week as day_list %}
+                        {% for day in day_list %}
+                        <div style="border: 1px solid var(--gray-200); border-radius: var(--radius); overflow: hidden;">
+                            <div style="background: var(--primary); color: white; padding: 10px 15px; font-weight: 600; text-transform: capitalize;">
+                                {{ day.grouper }}
+                            </div>
+                            <div style="padding: 15px;">
+                                {% for routine in day.list %}
+                                <div style="background: var(--gray-100); padding: 15px; border-radius: var(--radius); margin-bottom: 10px; {% if forloop.last %}margin-bottom: 0;{% endif %}">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                        <div>
+                                            <h4 style="color: var(--gray-900); margin-bottom: 5px;">{{ routine.title }}</h4>
+                                            <p style="color: var(--gray-600); font-size: 13px;">
+                                                {{ routine.sport.name }} • {{ routine.start_time|time:"H:i" }} - {{ routine.end_time|time:"H:i" }}
+                                            </p>
+                                            {% if routine.coach_approved_completion %}
+                                            <p style="color: #10b981; font-size: 12px; margin-top: 6px; font-weight: 600;">
+                                                Complete (Coach Approved)
+                                            </p>
+                                            {% else %}
+                                            <p style="color: #6b7280; font-size: 12px; margin-top: 6px; font-weight: 600;">
+                                                Not complete
+                                            </p>
+                                            {% endif %}
+                                            {% if routine.completion_message %}
+                                            <p style="color: var(--gray-500); font-size: 12px; margin-top: 4px;">
+                                                {{ routine.completion_message }}
+                                            </p>
+                                            {% endif %}
+                                        </div>
+                                        <div style="display: flex; gap: 8px;">
+                                            {% if not routine.coach_approved_completion %}
+                                            <form method="post" action="{% url 'coach:approve_routine_completion' routine.id %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" style="color: #10b981; font-size: 13px; background: none; border: none; cursor: pointer;">
+                                                    Approve
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                            <a href="{% url 'coach:edit_routine' routine.id %}" style="color: var(--primary); font-size: 13px;">Edit</a>
+                                            <form method="post" action="{% url 'coach:delete_routine' routine.id %}" style="display: inline;" onsubmit="return confirm('Delete this routine?');">
+                                                {% csrf_token %}
+                                                <button type="submit" style="color: #ef4444; font-size: 13px; background: none; border: none; cursor: pointer;">Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <div style="font-size: 50px; margin-bottom: 15px;">📋</div>
+                        <h4 style="color: var(--gray-700); margin-bottom: 10px;">No Routines Yet</h4>
+                        <p style="color: var(--gray-500); margin-bottom: 20px;">Create a training routine for this athlete.</p>
+                        <a href="{% url 'coach:create_routine' athlete.id %}" class="btn btn-primary" style="width: auto; padding: 10px 30px; display: inline-block;">
+                            Create Routine
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <a href="{% url 'coach:my_athletes' %}" class="btn btn-primary" style="width: auto; padding: 12px 30px; background: var(--gray-500);">
+                ← Back to All Athletes
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

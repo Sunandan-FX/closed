@@ -1,0 +1,146 @@
+{% extends 'user/base.html' %}
+
+{% block title %}Athlete Requests - Athletix{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="user-info">
+            <h1>Athlete Requests 📩</h1>
+            <p>Review and respond to coaching requests</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'home' %}" class="btn-logout">🏠 Home</a>
+            <a href="{% url 'coach:dashboard' %}" class="btn-logout">Dashboard</a>
+            <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="dashboard-body">
+        {% if messages %}
+        <div class="messages-container" style="margin-bottom: 20px;">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                <span>{{ message }}</span>
+                <button class="alert-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Pending Requests -->
+        <div style="margin-bottom: 40px;">
+            <h2 style="color: var(--gray-900); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--accent);">
+                ⏳ Pending Requests ({{ pending_requests.count }})
+            </h2>
+            
+            {% if pending_requests %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">
+                {% for request in pending_requests %}
+                <div class="info-card" style="padding: 25px; border-left: 4px solid var(--accent);">
+                    <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                        <div style="width: 60px; height: 60px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; margin-right: 15px;">
+                            {{ request.athlete.first_name|slice:":1" }}{{ request.athlete.last_name|slice:":1" }}
+                        </div>
+                        <div>
+                            <h3 style="color: var(--gray-900);">{{ request.athlete.first_name }} {{ request.athlete.last_name }}</h3>
+                            <p style="color: var(--gray-500); font-size: 13px;">{{ request.athlete.email }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if request.sport %}
+                    <div style="margin-bottom: 15px;">
+                        <label style="color: var(--gray-500); font-size: 12px; text-transform: uppercase;">Sport</label>
+                        <p style="color: var(--gray-700);">
+                            <span style="background: var(--primary); color: white; padding: 4px 12px; border-radius: 15px; font-size: 13px;">
+                                {{ request.sport.name }}
+                            </span>
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    {% if request.message %}
+                    <div style="margin-bottom: 15px;">
+                        <label style="color: var(--gray-500); font-size: 12px; text-transform: uppercase;">Message</label>
+                        <p style="color: var(--gray-700); background: var(--gray-100); padding: 12px; border-radius: var(--radius); font-size: 14px;">
+                            {{ request.message }}
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <p style="color: var(--gray-500); font-size: 12px; margin-bottom: 20px;">
+                        Requested on {{ request.created_at|date:"M d, Y at H:i" }}
+                    </p>
+
+                    <div style="display: flex; gap: 10px;">
+                        <form method="post" action="{% url 'coach:handle_request' request.id 'accept' %}" style="flex: 1;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary" style="width: 100%; background: var(--secondary);">
+                                ✓ Accept
+                            </button>
+                        </form>
+                        <form method="post" action="{% url 'coach:handle_request' request.id 'reject' %}" style="flex: 1;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary" style="width: 100%; background: #ef4444;">
+                                ✕ Decline
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="info-card" style="padding: 60px; text-align: center;">
+                <div style="font-size: 60px; margin-bottom: 20px;">📭</div>
+                <h3 style="color: var(--gray-700); margin-bottom: 10px;">No Pending Requests</h3>
+                <p style="color: var(--gray-500);">You don't have any pending coaching requests at the moment.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Past Requests History -->
+        {% if past_requests %}
+        <div>
+            <h2 style="color: var(--gray-900); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--gray-300);">
+                📜 Request History
+            </h2>
+            <div class="info-card" style="padding: 0; overflow: hidden;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: var(--gray-100);">
+                            <th style="padding: 15px; text-align: left; color: var(--gray-700);">Athlete</th>
+                            <th style="padding: 15px; text-align: left; color: var(--gray-700);">Sport</th>
+                            <th style="padding: 15px; text-align: left; color: var(--gray-700);">Date</th>
+                            <th style="padding: 15px; text-align: left; color: var(--gray-700);">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in past_requests %}
+                        <tr style="border-bottom: 1px solid var(--gray-200);">
+                            <td style="padding: 15px;">
+                                <div style="display: flex; align-items: center;">
+                                    <div style="width: 35px; height: 35px; background: var(--gray-300); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; color: white; margin-right: 10px;">
+                                        {{ request.athlete.first_name|slice:":1" }}{{ request.athlete.last_name|slice:":1" }}
+                                    </div>
+                                    <span style="color: var(--gray-900);">{{ request.athlete.first_name }} {{ request.athlete.last_name }}</span>
+                                </div>
+                            </td>
+                            <td style="padding: 15px; color: var(--gray-600);">{{ request.sport.name|default:"-" }}</td>
+                            <td style="padding: 15px; color: var(--gray-500);">{{ request.created_at|date:"M d, Y" }}</td>
+                            <td style="padding: 15px;">
+                                {% if request.status == 'accepted' %}
+                                <span style="background: var(--secondary); color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px;">Accepted</span>
+                                {% else %}
+                                <span style="background: #ef4444; color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px;">Declined</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
