@@ -1,0 +1,91 @@
+{% extends 'user/base.html' %}
+
+{% block title %}Admin App - Athletix{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="user-info">
+            <h1>Admin App 🛠️</h1>
+            <p>Manage players, coaches, and coach approvals</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'admin_app:users' %}" class="btn-logout">All Users</a>
+            <a href="{% url 'admin_app:players' %}" class="btn-logout">Players</a>
+            <a href="{% url 'admin_app:coaches' %}" class="btn-logout">Coaches</a>
+            <a href="{% url 'home' %}" class="btn-logout">🏠 Home</a>
+        </div>
+    </div>
+
+    <div class="dashboard-body">
+        {% if messages %}
+        <div class="messages-container" style="margin-bottom: 20px;">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                <span>{{ message }}</span>
+                <button class="alert-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="info-grid" style="margin-bottom: 25px;">
+            <div class="info-card">
+                <div class="card-icon">⏳</div>
+                <h3>Pending Coach Approvals</h3>
+                <p>{{ pending_coaches|length }}</p>
+            </div>
+            <div class="info-card">
+                <div class="card-icon">🏃</div>
+                <h3>Total Players</h3>
+                <p>{{ players|length }}</p>
+            </div>
+            <div class="info-card">
+                <div class="card-icon">🏋️</div>
+                <h3>Total Coaches</h3>
+                <p>{{ coaches|length }}</p>
+            </div>
+        </div>
+
+        <div class="info-card" style="padding: 25px;">
+            <h3 style="text-align: left; margin-bottom: 16px; color: var(--gray-900);">Pending Coach Requests</h3>
+            {% if pending_coaches %}
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="text-align:left;">Name</th>
+                            <th style="text-align:left;">Email</th>
+                            <th style="text-align:left;">Sport</th>
+                            <th style="text-align:left;">Specialization</th>
+                            <th style="text-align:left;">Experience</th>
+                            <th style="text-align:left;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for coach in pending_coaches %}
+                        <tr>
+                            <td>{{ coach.name }}</td>
+                            <td>{{ coach.email }}</td>
+                            <td>{% if coach.coach_profile and coach.coach_profile.sport %}{{ coach.coach_profile.sport.name }}{% else %}Not set{% endif %}</td>
+                            <td>{% if coach.coach_profile %}{{ coach.coach_profile.specialization|default:"Not set" }}{% else %}Not set{% endif %}</td>
+                            <td>{% if coach.coach_profile %}{{ coach.coach_profile.experience_years }} years{% else %}0 years{% endif %}</td>
+                            <td>
+                                <form method="post" action="{% url 'admin_app:approve_coach' coach.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary" style="width:auto; padding:8px 14px;">Approve</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="text-align:left; color: var(--gray-600);">No pending approvals.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,114 @@
+{% extends 'user/base.html' %}
+
+{% block title %}Edit User - Admin App{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="max-width: 760px;">
+    <div class="auth-header">
+        <div class="logo">ATHLETI<span>X</span></div>
+        <div class="subtitle">Edit User ({{ user_obj.get_role_display }})</div>
+    </div>
+
+    <div class="auth-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="name" class="form-input" value="{{ user_obj.name }}">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" class="form-input" value="{{ user_obj.email }}">
+            </div>
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="text" name="phone" class="form-input" value="{{ user_obj.phone }}">
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <textarea name="address" class="form-input" rows="3">{{ user_obj.address }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Blood Group</label>
+                <input type="text" name="blood_group" class="form-input" value="{{ user_obj.blood_group }}">
+            </div>
+
+            <div class="form-group">
+                <label><input type="checkbox" name="is_active" {% if user_obj.is_active %}checked{% endif %}> Active</label>
+            </div>
+
+            {% if user_obj.role == 'coach' %}
+            <div class="form-group">
+                <label><input type="checkbox" name="is_approved" {% if user_obj.is_approved %}checked{% endif %}> Approved</label>
+            </div>
+            <div class="form-group">
+                <label>Sport</label>
+                <select name="sport" class="form-input">
+                    <option value="">Select sport</option>
+                    {% for sport in sports %}
+                    <option value="{{ sport.id }}" {% if user_obj.coach_profile and user_obj.coach_profile.sport_id == sport.id %}selected{% endif %}>{{ sport.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Specialization</label>
+                <input type="text" name="specialization" class="form-input" value="{% if user_obj.coach_profile %}{{ user_obj.coach_profile.specialization }}{% endif %}">
+            </div>
+            <div class="form-group">
+                <label>Experience (years)</label>
+                <input type="number" name="experience_years" class="form-input" min="0" value="{% if user_obj.coach_profile %}{{ user_obj.coach_profile.experience_years }}{% endif %}">
+            </div>
+            <div class="form-group">
+                <label>Certification</label>
+                <input type="text" name="certification" class="form-input" value="{% if user_obj.coach_profile %}{{ user_obj.coach_profile.certification }}{% endif %}">
+            </div>
+            <div class="form-group">
+                <label>Bio</label>
+                <textarea name="bio" class="form-input" rows="3">{% if user_obj.coach_profile %}{{ user_obj.coach_profile.bio }}{% endif %}</textarea>
+            </div>
+            {% endif %}
+
+            {% if user_obj.role == 'athlete' %}
+            <div class="form-group">
+                <label>Age</label>
+                <input type="number" name="age" class="form-input" min="1" value="{% if user_obj.athlete_profile and user_obj.athlete_profile.age %}{{ user_obj.athlete_profile.age }}{% endif %}">
+            </div>
+            <div class="form-group">
+                <label>Height</label>
+                <input type="text" name="height" class="form-input" value="{% if user_obj.athlete_profile %}{{ user_obj.athlete_profile.height }}{% endif %}">
+            </div>
+            <div class="form-group">
+                <label>Weight</label>
+                <input type="text" name="weight" class="form-input" value="{% if user_obj.athlete_profile %}{{ user_obj.athlete_profile.weight }}{% endif %}">
+            </div>
+            <div class="form-group">
+                <label>Fitness Level</label>
+                <select name="fitness_level" class="form-input">
+                    <option value="low" {% if user_obj.athlete_profile and user_obj.athlete_profile.fitness_level == 'low' %}selected{% endif %}>Low</option>
+                    <option value="medium" {% if user_obj.athlete_profile and user_obj.athlete_profile.fitness_level == 'medium' %}selected{% endif %}>Medium</option>
+                    <option value="high" {% if user_obj.athlete_profile and user_obj.athlete_profile.fitness_level == 'high' %}selected{% endif %}>High</option>
+                </select>
+            </div>
+            {% endif %}
+
+            {% if user_obj.role == 'medical' %}
+            <div class="form-group">
+                <label>License Number</label>
+                <input type="text" name="license_no" class="form-input" value="{% if user_obj.medical_profile %}{{ user_obj.medical_profile.license_no }}{% endif %}">
+            </div>
+            <div class="form-group">
+                <label>Specialty</label>
+                <input type="text" name="specialty" class="form-input" value="{% if user_obj.medical_profile %}{{ user_obj.medical_profile.specialty }}{% endif %}">
+            </div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+    </div>
+
+    <div class="auth-footer">
+        <a href="{% url 'admin_app:users' %}">← Back to Users</a>
+    </div>
+</div>
+{% endblock %}
+

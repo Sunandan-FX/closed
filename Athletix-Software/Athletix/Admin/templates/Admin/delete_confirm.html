@@ -1,0 +1,24 @@
+{% extends 'user/base.html' %}
+
+{% block title %}Delete User - Admin App{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="max-width: 520px;">
+    <div class="auth-header">
+        <div class="logo">ATHLETI<span>X</span></div>
+        <div class="subtitle">Delete User</div>
+    </div>
+
+    <div class="auth-body">
+        <p style="margin-bottom: 20px; color: var(--gray-700);">
+            Are you sure you want to delete <strong>{{ user_obj.name }}</strong> ({{ user_obj.email }})?
+        </p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary" style="background:#d64933;">Yes, Delete</button>
+        </form>
+        <a href="{% url 'admin_app:users' %}" class="btn btn-primary" style="display:inline-block; width:100%; text-align:center; margin-top:10px;">Cancel</a>
+    </div>
+</div>
+{% endblock %}
+
