@@ -1,0 +1,91 @@
+{% extends 'user/base.html' %}
+
+{% block title %}Sign Up - Athletix{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-header">
+        <div class="logo">ATHLETI<span>X</span></div>
+        <div class="subtitle">Student Intelligence for Athletic Fitness & Health</div>
+    </div>
+
+    {% if messages %}
+    <div class="messages-container" style="padding-top: 20px;">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            <span>{{ message }}</span>
+            <button class="alert-close">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="auth-body">
+        <h2>Create Your Account</h2>
+        <form method="POST" novalidate>
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                <ul class="error-list">{% for error in form.name.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                <ul class="error-list">{% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="role">Role</label>
+                {{ form.role }}
+                {% if form.role.errors %}
+                <ul class="error-list">{% for error in form.role.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-wrapper">
+                    {{ form.password }}
+                    <button type="button" class="toggle-password" onclick="togglePassword('password')">👁</button>
+                </div>
+                {% if form.password.errors %}
+                <ul class="error-list">{% for error in form.password.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+                <div class="password-wrapper">
+                    {{ form.confirm_password }}
+                    <button type="button" class="toggle-password" onclick="togglePassword('confirm_password')">👁</button>
+                </div>
+                {% if form.confirm_password.errors %}
+                <ul class="error-list">{% for error in form.confirm_password.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-error" style="margin-bottom: 15px;">
+                {% for error in form.non_field_errors %}<span>{{ error }}</span>{% endfor %}
+            </div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary">Sign Up</button>
+        </form>
+    </div>
+
+    <div class="auth-footer">
+        <span>Already have an account?</span>
+        <a href="{% url 'login' %}">Log In</a>
+        <span class="separator">|</span>
+        <a href="{% url 'home' %}">← Home</a>
+    </div>
+</div>
+{% endblock %}

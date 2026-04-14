@@ -1,0 +1,326 @@
+{% extends 'user/base.html' %}
+
+{% block title %}Edit Profile - Athletix{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="max-width: 600px;">
+    <div class="auth-header">
+        <div class="logo">ATHLETI<span>X</span></div>
+        <div class="subtitle">Edit Your Profile</div>
+    </div>
+
+    {% if messages %}
+    <div class="messages-container" style="padding-top: 20px;">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            <span>{{ message }}</span>
+            <button class="alert-close">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="auth-body">
+        <div class="current-photo" style="text-align: center; margin-bottom: 25px;">
+            <img
+                id="profile-photo-preview"
+                src="{% if request.user.profile_photo %}{{ request.user.profile_photo.url }}{% endif %}"
+                alt="Profile Photo"
+                class="edit-avatar-img"
+                style="{% if not request.user.profile_photo %}display: none;{% endif %}"
+            >
+            <div
+                id="profile-photo-placeholder"
+                class="edit-avatar-placeholder"
+                style="{% if request.user.profile_photo %}display: none;{% endif %}"
+            >
+                {{ request.user.first_name|slice:":1"|upper }}
+            </div>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+
+            <!-- Profile Photo -->
+            <div class="form-group">
+                <label for="profile_photo">📷 Profile Photo</label>
+                {{ form.profile_photo }}
+                {% if form.profile_photo.errors %}
+                <ul class="error-list">{% for error in form.profile_photo.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
+                <small style="color: #5f6368; font-size: 12px;">Accepted formats: JPG, PNG, GIF. Max 5MB.</small>
+            </div>
+
+            <!-- Section: Personal Information -->
+            <div class="form-section">
+                <h3 class="section-title">👤 Personal Information</h3>
+                
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <ul class="error-list">{% for error in form.name.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="date_of_birth">Date of Birth</label>
+                        {{ form.date_of_birth }}
+                        {% if form.date_of_birth.errors %}
+                        <ul class="error-list">{% for error in form.date_of_birth.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                        {% endif %}
+                    </div>
+                    <div class="form-group half">
+                        <label for="blood_group">🩸 Blood Group</label>
+                        {{ form.blood_group }}
+                        {% if form.blood_group.errors %}
+                        <ul class="error-list">{% for error in form.blood_group.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Contact Information -->
+            <div class="form-section">
+                <h3 class="section-title">📞 Contact Information</h3>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                    <ul class="error-list">{% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    {{ form.phone }}
+                    {% if form.phone.errors %}
+                    <ul class="error-list">{% for error in form.phone.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    {{ form.address }}
+                    {% if form.address.errors %}
+                    <ul class="error-list">{% for error in form.address.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Section: Athlete-specific fields -->
+            {% if request.user.role == 'athlete' %}
+            <div class="form-section">
+                <h3 class="section-title">🏃 Athletic Information</h3>
+                
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="age">Age</label>
+                        <input type="number" name="age" id="age" class="form-input" min="5" max="100" 
+                               value="{% if role_profile and role_profile.age %}{{ role_profile.age }}{% endif %}"
+                               placeholder="Your age">
+                    </div>
+                    <div class="form-group half">
+                        <label for="fitness_level">Fitness Level</label>
+                        <select name="fitness_level" id="fitness_level" class="form-input">
+                            <option value="low" {% if role_profile and role_profile.fitness_level == 'low' %}selected{% endif %}>Low</option>
+                            <option value="medium" {% if role_profile and role_profile.fitness_level == 'medium' %}selected{% endif %}>Medium</option>
+                            <option value="high" {% if role_profile and role_profile.fitness_level == 'high' %}selected{% endif %}>High</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="height">Height</label>
+                        <input type="text" name="height" id="height" class="form-input" 
+                               value="{% if role_profile and role_profile.height %}{{ role_profile.height }}{% endif %}"
+                               placeholder="e.g., 5'10&quot; or 178 cm">
+                    </div>
+                    <div class="form-group half">
+                        <label for="weight">Weight</label>
+                        <input type="text" name="weight" id="weight" class="form-input" 
+                               value="{% if role_profile and role_profile.weight %}{{ role_profile.weight }}{% endif %}"
+                               placeholder="e.g., 70 kg">
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Section: Coach-specific fields -->
+            {% if request.user.role == 'coach' %}
+            <div class="form-section">
+                <h3 class="section-title">🏋️ Coaching Information</h3>
+                
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label for="sport">Primary Sport</label>
+                        <select name="sport" id="sport" class="form-input">
+                            <option value="">Select sport</option>
+                            {% for sport in sports %}
+                            <option value="{{ sport.id }}" {% if role_profile and role_profile.sport_id == sport.id %}selected{% endif %}>
+                                {{ sport.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group half">
+                        <label for="specialization">Specialization</label>
+                        <input type="text" name="specialization" id="specialization" class="form-input" 
+                               value="{% if role_profile and role_profile.specialization %}{{ role_profile.specialization }}{% endif %}"
+                               placeholder="e.g., Football, Cricket">
+                    </div>
+                    <div class="form-group half">
+                        <label for="experience_years">Years of Experience</label>
+                        <input type="number" name="experience_years" id="experience_years" class="form-input" min="0"
+                               value="{% if role_profile and role_profile.experience_years %}{{ role_profile.experience_years }}{% endif %}"
+                               placeholder="0">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="certification">Certifications</label>
+                    <input type="text" name="certification" id="certification" class="form-input" 
+                           value="{% if role_profile and role_profile.certification %}{{ role_profile.certification }}{% endif %}"
+                           placeholder="Your professional certifications">
+                </div>
+                
+                <div class="form-group">
+                    <label for="bio">Bio</label>
+                    <textarea name="bio" id="bio" class="form-input" rows="3" placeholder="Tell us about yourself...">{% if role_profile and role_profile.bio %}{{ role_profile.bio }}{% endif %}</textarea>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if request.user.role == 'medical' %}
+            <div class="form-section">
+                <h3 class="section-title">🏥 Medical Information</h3>
+
+                <div class="form-group">
+                    <label for="license_no">License Number</label>
+                    <input type="text" name="license_no" id="license_no" class="form-input"
+                           value="{% if role_profile and role_profile.license_no %}{{ role_profile.license_no }}{% endif %}"
+                           placeholder="Medical license number">
+                </div>
+
+                <div class="form-group">
+                    <label for="specialty">Specialty</label>
+                    <input type="text" name="specialty" id="specialty" class="form-input"
+                           value="{% if role_profile and role_profile.specialty %}{{ role_profile.specialty }}{% endif %}"
+                           placeholder="e.g., Sports Medicine, Physiotherapy">
+                </div>
+            </div>
+            {% endif %}
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-error" style="margin-bottom: 15px;">
+                {% for error in form.non_field_errors %}<span>{{ error }}</span>{% endfor %}
+            </div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+        </form>
+    </div>
+
+    <div class="auth-footer">
+        <a href="{% url 'profile' %}">← Back to Profile</a>
+        <span class="separator">|</span>
+        <a href="{% url 'home' %}">🏠 Home</a>
+    </div>
+</div>
+
+<style>
+    .edit-avatar-img {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #1a73e8;
+        box-shadow: 0 4px 15px rgba(26, 115, 232, 0.3);
+    }
+    
+    .edit-avatar-placeholder {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ffd700, #ffaa00);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        font-weight: 700;
+        color: #202124;
+        border: 4px solid #1a73e8;
+        box-shadow: 0 4px 15px rgba(26, 115, 232, 0.3);
+    }
+    
+    .form-section {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .section-title {
+        color: #ffd700;
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+    }
+    
+    .form-row {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .form-group.half {
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    textarea.form-input {
+        resize: vertical;
+        min-height: 80px;
+    }
+    
+    .btn-primary {
+        width: 100%;
+        margin-top: 10px;
+    }
+    
+    @media (max-width: 480px) {
+        .form-row {
+            flex-direction: column;
+        }
+        
+        .form-group.half {
+            min-width: 100%;
+        }
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const input = document.getElementById('profile_photo');
+        const preview = document.getElementById('profile-photo-preview');
+        const placeholder = document.getElementById('profile-photo-placeholder');
+
+        if (!input || !preview || !placeholder) return;
+
+        input.addEventListener('change', function (event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            const objectUrl = URL.createObjectURL(file);
+            preview.src = objectUrl;
+            preview.style.display = 'inline-block';
+            placeholder.style.display = 'none';
+        });
+    });
+</script>
+{% endblock %}

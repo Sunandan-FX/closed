@@ -1,0 +1,843 @@
+{% extends 'base.html' %}
+
+{% block title %}Athletix - Student Intelligence for Athletic Fitness & Health{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+        display: block;
+        padding: 0;
+        margin: 0;
+        min-height: 100vh;
+        overflow-x: hidden;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Poppins', Roboto, sans-serif;
+    }
+
+    .navbar {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 1000;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 50px;
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .navbar.scrolled {
+        padding: 14px 50px;
+        background: rgba(15, 23, 42, 0.98);
+        box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .nav-logo {
+        font-size: 28px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #FFFFFF, #94A3B8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-decoration: none;
+        letter-spacing: 2px;
+    }
+
+    .nav-logo span { 
+        background: linear-gradient(135deg, #00A896, #02C39A);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 800;
+    }
+
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .nav-btn {
+        padding: 10px 28px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        letter-spacing: 0.3px;
+    }
+
+    .nav-btn-outline {
+        color: #E2E8F0;
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        background: transparent;
+    }
+
+    .nav-btn-outline:hover {
+        border-color: #00A896;
+        color: #00A896;
+        transform: translateY(-2px);
+    }
+
+    .nav-btn-primary {
+        background: linear-gradient(135deg, #00A896, #028A74);
+        color: #fff;
+        border: none;
+        box-shadow: 0 2px 10px rgba(0, 168, 150, 0.3);
+    }
+
+    .nav-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(0, 168, 150, 0.4);
+    }
+
+    .nav-greeting {
+        color: #F0A202;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 8px 18px;
+        background: rgba(240, 162, 2, 0.1);
+        border-radius: 30px;
+        border: 1px solid rgba(240, 162, 2, 0.3);
+    }
+
+    .hero {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 120px 20px 80px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero::before {
+        content: '';
+        position: absolute;
+        top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background: radial-gradient(ellipse at 30% 50%, rgba(0, 168, 150, 0.12) 0%, transparent 50%),
+                    radial-gradient(ellipse at 70% 50%, rgba(240, 162, 2, 0.08) 0%, transparent 50%);
+        animation: rotateGlow 25s linear infinite;
+    }
+
+    @keyframes rotateGlow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        max-width: 900px;
+    }
+
+    .hero-badge {
+        display: inline-block;
+        padding: 8px 24px;
+        background: rgba(0, 168, 150, 0.12);
+        border: 1px solid rgba(0, 168, 150, 0.3);
+        border-radius: 50px;
+        color: #00A896;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 30px;
+        animation: fadeInDown 0.8s ease;
+    }
+
+    .hero h1 {
+        font-size: 64px;
+        font-weight: 800;
+        color: #fff;
+        line-height: 1.1;
+        margin-bottom: 25px;
+        animation: fadeInUp 0.8s ease 0.2s both;
+        letter-spacing: -1px;
+    }
+
+    .hero h1 .highlight {
+        background: linear-gradient(135deg, #00A896, #F0A202);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-description {
+        font-size: 19px;
+        color: #CBD5E1;
+        line-height: 1.7;
+        margin-bottom: 45px;
+        max-width: 650px;
+        margin-left: auto;
+        margin-right: auto;
+        animation: fadeInUp 0.8s ease 0.4s both;
+    }
+
+    .hero-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        animation: fadeInUp 0.8s ease 0.6s both;
+    }
+
+    .hero-btn {
+        padding: 16px 42px;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    .hero-btn-primary {
+        background: linear-gradient(135deg, #00A896, #028A74);
+        color: #fff;
+        box-shadow: 0 5px 25px rgba(0, 168, 150, 0.3);
+    }
+
+    .hero-btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 40px rgba(0, 168, 150, 0.5);
+    }
+
+    .hero-btn-secondary {
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        color: #E2E8F0;
+        background: transparent;
+    }
+
+    .hero-btn-secondary:hover {
+        border-color: #F0A202;
+        color: #F0A202;
+        transform: translateY(-3px);
+    }
+
+    .hero-stats {
+        display: flex;
+        justify-content: center;
+        gap: 60px;
+        margin-top: 70px;
+        animation: fadeInUp 0.8s ease 0.8s both;
+    }
+
+    .stat-item { text-align: center; }
+
+    .stat-number {
+        font-size: 40px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #fff, #94A3B8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        display: block;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: #64748B;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 8px;
+        font-weight: 600;
+    }
+
+    .particles {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        overflow: hidden;
+        z-index: 0;
+    }
+
+    .particle {
+        position: absolute;
+        border-radius: 50%;
+        animation: floatParticle linear infinite;
+        opacity: 0.2;
+    }
+
+    @keyframes floatParticle {
+        0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+        10% { opacity: 0.3; }
+        90% { opacity: 0.3; }
+        100% { transform: translateY(-100px) rotate(720deg); opacity: 0; }
+    }
+
+    .features { 
+        padding: 100px 50px;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .section-header {
+        text-align: center;
+        margin-bottom: 70px;
+    }
+
+    .section-tag {
+        display: inline-block;
+        padding: 6px 20px;
+        background: rgba(0, 168, 150, 0.1);
+        border: 1px solid rgba(0, 168, 150, 0.2);
+        border-radius: 50px;
+        color: #00A896;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+    }
+
+    .section-header h2 {
+        font-size: 44px;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 18px;
+        letter-spacing: -0.5px;
+    }
+
+    .section-header p {
+        color: #94A3B8;
+        font-size: 17px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 35px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .feature-card {
+        background: rgba(30, 41, 59, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 20px;
+        padding: 38px 32px;
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #00A896, #F0A202);
+        transform: scaleX(0);
+        transition: transform 0.4s ease;
+    }
+
+    .feature-card:hover {
+        background: rgba(30, 41, 59, 0.7);
+        transform: translateY(-8px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        border-color: rgba(0, 168, 150, 0.2);
+    }
+
+    .feature-card:hover::before { transform: scaleX(1); }
+
+    .feature-icon {
+        font-size: 48px;
+        margin-bottom: 22px;
+        display: block;
+    }
+
+    .feature-card h3 {
+        font-size: 22px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 12px;
+    }
+
+    .feature-card p {
+        color: #CBD5E1;
+        font-size: 15px;
+        line-height: 1.7;
+    }
+
+    .roles {
+        padding: 100px 50px;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.4) 100%);
+    }
+
+    .roles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .role-card {
+        text-align: center;
+        padding: 45px 30px;
+        border-radius: 20px;
+        transition: all 0.4s ease;
+        backdrop-filter: blur(10px);
+    }
+
+    .role-card:hover { transform: translateY(-10px); }
+
+    .role-card.athlete-card {
+        background: linear-gradient(135deg, rgba(0, 168, 150, 0.08), rgba(0, 168, 150, 0.02));
+        border: 1px solid rgba(0, 168, 150, 0.15);
+    }
+    .role-card.athlete-card:hover {
+        box-shadow: 0 15px 40px rgba(0, 168, 150, 0.15);
+        border-color: rgba(0, 168, 150, 0.4);
+    }
+
+    .role-card.coach-card {
+        background: linear-gradient(135deg, rgba(240, 162, 2, 0.08), rgba(240, 162, 2, 0.02));
+        border: 1px solid rgba(240, 162, 2, 0.15);
+    }
+    .role-card.coach-card:hover {
+        box-shadow: 0 15px 40px rgba(240, 162, 2, 0.15);
+        border-color: rgba(240, 162, 2, 0.4);
+    }
+
+    .role-card.medical-card {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(239, 68, 68, 0.02));
+        border: 1px solid rgba(239, 68, 68, 0.15);
+    }
+    .role-card.medical-card:hover {
+        box-shadow: 0 15px 40px rgba(239, 68, 68, 0.15);
+        border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    .role-icon {
+        font-size: 60px;
+        display: block;
+        margin-bottom: 22px;
+    }
+
+    .role-card h3 {
+        font-size: 22px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 12px;
+    }
+
+    .role-card p {
+        color: #CBD5E1;
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    .tech-stack { 
+        padding: 100px 50px;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .tech-grid {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        flex-wrap: wrap;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .tech-item {
+        text-align: center;
+        padding: 30px;
+        background: rgba(30, 41, 59, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 16px;
+        min-width: 150px;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+
+    .tech-item:hover {
+        background: rgba(30, 41, 59, 0.7);
+        transform: translateY(-5px);
+        border-color: rgba(0, 168, 150, 0.3);
+    }
+
+    .tech-item .tech-icon {
+        font-size: 38px;
+        display: block;
+        margin-bottom: 12px;
+    }
+
+    .tech-item span {
+        color: #CBD5E1;
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .cta {
+        padding: 100px 50px;
+        text-align: center;
+    }
+
+    .cta-box {
+        max-width: 750px;
+        margin: 0 auto;
+        padding: 70px 50px;
+        background: linear-gradient(135deg, rgba(0, 168, 150, 0.1), rgba(240, 162, 2, 0.05));
+        border: 1px solid rgba(0, 168, 150, 0.2);
+        border-radius: 24px;
+        backdrop-filter: blur(10px);
+    }
+
+    .cta-box h2 {
+        font-size: 40px;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 18px;
+        letter-spacing: -0.5px;
+    }
+
+    .cta-box p {
+        color: #CBD5E1;
+        font-size: 17px;
+        margin-bottom: 40px;
+    }
+
+    .footer {
+        padding: 50px 50px 30px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        text-align: center;
+        background: rgba(0, 0, 0, 0.3);
+    }
+
+    .footer-logo {
+        font-size: 24px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #FFFFFF, #94A3B8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: 2px;
+        margin-bottom: 15px;
+    }
+
+    .footer-logo span { 
+        background: linear-gradient(135deg, #00A896, #02C39A);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .footer p {
+        color: #64748B;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .footer-team {
+        color: #475569;
+        font-size: 13px;
+        margin-top: 20px;
+    }
+
+    @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .scroll-reveal {
+        opacity: 0;
+        transform: translateY(40px);
+        transition: all 0.8s ease;
+    }
+
+    .scroll-reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .mobile-menu-btn {
+        display: none;
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 28px;
+        cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+        .navbar { padding: 15px 20px; }
+        .nav-links {
+            display: none;
+            position: absolute;
+            top: 100%; left: 0; right: 0;
+            background: rgba(15, 23, 42, 0.98);
+            flex-direction: column;
+            padding: 20px;
+            gap: 15px;
+        }
+        .nav-links.active { display: flex; }
+        .mobile-menu-btn { display: block; }
+        .hero h1 { font-size: 38px; }
+        .hero-description { font-size: 16px; }
+        .hero-stats { gap: 30px; flex-wrap: wrap; }
+        .stat-number { font-size: 32px; }
+        .hero-buttons { flex-direction: column; align-items: center; }
+        .hero-btn { width: 100%; max-width: 300px; text-align: center; padding: 14px 30px; }
+        .features, .roles, .tech-stack, .cta { padding: 60px 20px; }
+        .section-header h2 { font-size: 32px; }
+        .cta-box h2 { font-size: 28px; }
+        .cta-box { padding: 50px 30px; }
+        .feature-card { padding: 30px 25px; }
+        .role-card { padding: 35px 25px; }
+    }
+</style>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+    <a href="{% url 'home' %}" class="nav-logo">ATHLETI<span>X</span></a>
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+    <div class="nav-links" id="navLinks">
+        {% if user.is_authenticated %}
+            <span class="nav-greeting">Hi, {{ user.first_name }}!</span>
+            <a href="{% url 'profile' %}" class="nav-btn nav-btn-outline">My Profile</a>
+            <a href="{% url 'dashboard' %}" class="nav-btn nav-btn-outline">Dashboard</a>
+            {% if user.role == 'medical' %}
+            <a href="{% url 'medical_staff:dashboard' %}" class="nav-btn nav-btn-outline">Medical Dashboard</a>
+            {% endif %}
+            {% if user.is_staff or user.is_superuser %}
+            <a href="{% url 'admin_app:dashboard' %}" class="nav-btn nav-btn-outline">Admin App</a>
+            {% endif %}
+            <a href="{% url 'logout' %}" class="nav-btn nav-btn-primary">Logout</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="nav-btn nav-btn-outline">Log In</a>
+            <a href="{% url 'signup' %}" class="nav-btn nav-btn-primary">Sign Up Free</a>
+        {% endif %}
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="particles" id="particles"></div>
+    <div class="hero-content">
+        <div class="hero-badge">🏆 Athletic Performance Platform</div>
+        <h1>
+            Train Smarter.<br>
+            Recover Faster.<br>
+            Perform at Your <span class="highlight">Peak.</span>
+        </h1>
+        <p class="hero-description">
+            Athletix is a comprehensive platform for student athletes to track training,
+            monitor recovery, detect injury risks, and connect with coaches & medical staff
+            — all in one place.
+        </p>
+        <div class="hero-buttons">
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="hero-btn hero-btn-primary">Go to Dashboard →</a>
+            {% else %}
+                <a href="{% url 'signup' %}" class="hero-btn hero-btn-primary">Get Started Free →</a>
+                <a href="{% url 'login' %}" class="hero-btn hero-btn-secondary">Already a Member</a>
+            {% endif %}
+        </div>
+        <div class="hero-stats">
+            <div class="stat-item">
+                <span class="stat-number" id="statAthletes">0</span>
+                <span class="stat-label">Athletes</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="statSports">0</span>
+                <span class="stat-label">Sports</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="statSessions">0</span>
+                <span class="stat-label">Sessions Tracked</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="statUptime">0</span>
+                <span class="stat-label">% Uptime</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+    <div class="section-header scroll-reveal">
+        <div class="section-tag">Features</div>
+        <h2>Everything You Need to Excel</h2>
+        <p>Powerful tools designed for athletes, coaches, and medical professionals</p>
+    </div>
+    <div class="features-grid">
+        <div class="feature-card scroll-reveal">
+            <span class="feature-icon">📊</span>
+            <h3>Performance Tracking</h3>
+            <p>Track speed, distance, repetitions, sport-specific metrics, and analyze progress over time with visual charts.</p>
+        </div>
+        <div class="feature-card scroll-reveal">
+            <span class="feature-icon">💪</span>
+            <h3>Training Management</h3>
+            <p>Log training sessions, receive personalized training plans, and monitor workload to optimize development.</p>
+        </div>
+        <div class="feature-card scroll-reveal">
+            <span class="feature-icon">🩺</span>
+            <h3>Health Monitoring</h3>
+            <p>Track fatigue levels, sleep quality, muscle soreness, and recovery status to maintain peak condition.</p>
+        </div>
+        <div class="feature-card scroll-reveal">
+            <span class="feature-icon">⚠️</span>
+            <h3>Injury Risk Detection</h3>
+            <p>Intelligent analysis detects overtraining signs and potential injury risks with timely alerts.</p>
+        </div>
+        <div class="feature-card scroll-reveal">
+            <span class="feature-icon">💬</span>
+            <h3>Team Communication</h3>
+            <p>Secure in-app messaging between athletes, coaches, and medical staff for real-time support.</p>
+        </div>
+        <div class="feature-card scroll-reveal">
+            <span class="feature-icon">📈</span>
+            <h3>Dashboard & Reports</h3>
+            <p>Role-based dashboards with visual charts, performance trends, and downloadable reports.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ROLES -->
+<section class="roles" id="roles">
+    <div class="section-header scroll-reveal">
+        <div class="section-tag">User Roles</div>
+        <h2>Built for Every Stakeholder</h2>
+        <p>Tailored experiences for athletes, coaches, and medical professionals</p>
+    </div>
+    <div class="roles-grid">
+        <div class="role-card athlete-card scroll-reveal">
+            <span class="role-icon">🏃</span>
+            <h3>Athlete</h3>
+            <p>Track personal performance, log training sessions, report health issues, monitor recovery, and view personalized recommendations.</p>
+        </div>
+        <div class="role-card coach-card scroll-reveal">
+            <span class="role-icon">📋</span>
+            <h3>Coach</h3>
+            <p>Create training plans, monitor athlete performance, manage workloads, receive fitness alerts, and adjust programs.</p>
+        </div>
+        <div class="role-card medical-card scroll-reveal">
+            <span class="role-icon">🏥</span>
+            <h3>Medical Staff</h3>
+            <p>Access health records, review injury reports, monitor fitness data, provide medical feedback, and manage recovery.</p>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- CTA -->
+<section class="cta" id="cta">
+    <div class="cta-box scroll-reveal">
+        <h2>Ready to Transform Your Training?</h2>
+        <p>Join Athletix today and take your athletic performance to the next level.</p>
+        <div class="hero-buttons" style="margin-top: 0;">
+            {% if user.is_authenticated %}
+                <a href="{% url 'profile' %}" class="hero-btn hero-btn-secondary">My Profile</a>
+                <a href="{% url 'dashboard' %}" class="hero-btn hero-btn-primary">Open Dashboard →</a>
+            {% else %}
+                <a href="{% url 'signup' %}" class="hero-btn hero-btn-primary">Create Free Account →</a>
+                <a href="{% url 'login' %}" class="hero-btn hero-btn-secondary">Log In</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-logo">ATHLETI<span>X</span></div>
+    <p>Student Intelligence for Athletic Fitness & Health</p>
+    <p>University of Asia Pacific — CSE 314: Software Engineering Lab</p>
+    <div class="footer-team">
+        <p>Rokonur Zaman Rokon (23101194) · Md Minhazul Islam (23101207) · Sunandan Das (23101218) · Md. Sakif Hossain (23101219)</p>
+        <p style="margin-top: 10px;">© 2026 Athletix. All rights reserved.</p>
+    </div>
+</footer>
+
+<script>
+    window.addEventListener('scroll', function() {
+        var navbar = document.getElementById('navbar');
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+
+    function toggleMobileMenu() {
+        document.getElementById('navLinks').classList.toggle('active');
+    }
+
+    function revealOnScroll() {
+        var elements = document.querySelectorAll('.scroll-reveal');
+        elements.forEach(function(el) {
+            var rect = el.getBoundingClientRect();
+            if (rect.top < window.innerHeight - 80) {
+                el.classList.add('visible');
+            }
+        });
+    }
+    window.addEventListener('scroll', revealOnScroll);
+    window.addEventListener('load', revealOnScroll);
+
+    function animateCounter(id, target, suffix) {
+        var el = document.getElementById(id);
+        var current = 0;
+        var increment = target / 60;
+        var timer = setInterval(function() {
+            current += increment;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            el.textContent = Math.floor(current) + (suffix || '');
+        }, 25);
+    }
+
+    var countersStarted = false;
+    window.addEventListener('load', function() {
+        if (!countersStarted) {
+            countersStarted = true;
+            setTimeout(function() {
+                animateCounter('statAthletes', 1000, '+');
+                animateCounter('statSports', 15, '+');
+                animateCounter('statSessions', 5000, '+');
+                animateCounter('statUptime', 99, '');
+            }, 500);
+        }
+    });
+
+    function createParticles() {
+        var container = document.getElementById('particles');
+        var colors = ['#667eea', '#764ba2', '#ffd700', '#34a853', '#ea4335'];
+        for (var i = 0; i < 30; i++) {
+            var p = document.createElement('div');
+            p.className = 'particle';
+            var size = Math.random() * 6 + 2;
+            p.style.width = size + 'px';
+            p.style.height = size + 'px';
+            p.style.background = colors[Math.floor(Math.random() * colors.length)];
+            p.style.left = Math.random() * 100 + '%';
+            p.style.animationDuration = (Math.random() * 15 + 10) + 's';
+            p.style.animationDelay = (Math.random() * 10) + 's';
+            container.appendChild(p);
+        }
+    }
+    createParticles();
+</script>
+{% endblock %}

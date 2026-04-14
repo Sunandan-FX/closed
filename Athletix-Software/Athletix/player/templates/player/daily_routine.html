@@ -1,0 +1,111 @@
+{% extends 'user/base.html' %}
+
+{% block title %}Daily Routine - Athletix{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="user-info">
+            <h1>Daily Routine 📋</h1>
+            <p>Your training schedule and routines</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'home' %}" class="btn-logout">🏠 Home</a>
+            <a href="{% url 'player:dashboard' %}" class="btn-logout">Dashboard</a>
+            <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="dashboard-body">
+        {% if messages %}
+        <div class="messages-container" style="margin-bottom: 20px;">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                <span>{{ message }}</span>
+                <button class="alert-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Day Filter -->
+        <div class="info-card" style="padding: 20px; margin-bottom: 20px;">
+            <form method="get" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                <label style="color: var(--gray-700); font-weight: 500;">Filter by Day:</label>
+                <select name="day" style="padding: 10px 15px; border: 1px solid var(--gray-300); border-radius: var(--radius); min-width: 200px;">
+                    <option value="">All Days</option>
+                    <option value="monday" {% if selected_day == 'monday' %}selected{% endif %}>Monday</option>
+                    <option value="tuesday" {% if selected_day == 'tuesday' %}selected{% endif %}>Tuesday</option>
+                    <option value="wednesday" {% if selected_day == 'wednesday' %}selected{% endif %}>Wednesday</option>
+                    <option value="thursday" {% if selected_day == 'thursday' %}selected{% endif %}>Thursday</option>
+                    <option value="friday" {% if selected_day == 'friday' %}selected{% endif %}>Friday</option>
+                    <option value="saturday" {% if selected_day == 'saturday' %}selected{% endif %}>Saturday</option>
+                    <option value="sunday" {% if selected_day == 'sunday' %}selected{% endif %}>Sunday</option>
+                </select>
+                <button type="submit" class="btn btn-primary" style="width: auto; padding: 10px 25px;">
+                    Filter
+                </button>
+            </form>
+        </div>
+
+        <!-- Week View -->
+        <div class="info-card" style="padding: 25px;">
+            <h3 style="color: var(--gray-900); margin-bottom: 20px;">Weekly Schedule</h3>
+            
+            {% if routines %}
+            <div style="display: grid; gap: 15px;">
+                {% regroup routines by day_of_week as day_list %}
+                {% for day in day_list %}
+                <div style="border: 1px solid var(--gray-200); border-radius: var(--radius); overflow: hidden;">
+                    <div style="background: var(--primary); color: white; padding: 12px 20px; font-weight: 600; text-transform: capitalize;">
+                        {{ day.grouper }}
+                    </div>
+                    <div style="padding: 15px;">
+                        {% for routine in day.list %}
+                        <div style="background: var(--gray-100); padding: 15px; border-radius: var(--radius); margin-bottom: 10px; {% if forloop.last %}margin-bottom: 0;{% endif %}">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div>
+                                    <h4 style="color: var(--gray-900); margin-bottom: 5px;">{{ routine.title }}</h4>
+                                    <p style="color: var(--gray-600); font-size: 14px;">
+                                        {{ routine.sport.name }} • Coach: {{ routine.coach.user.first_name }} {{ routine.coach.user.last_name }}
+                                    </p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span style="background: var(--secondary); color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px;">
+                                        {{ routine.start_time|time:"H:i" }} - {{ routine.end_time|time:"H:i" }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div style="margin-top: 10px;">
+                                {% if routine.coach_approved_completion %}
+                                <span style="display: inline-block; margin-right: 10px; color: #10b981; font-size: 13px; font-weight: 600;">
+                                    Complete (Coach Approved)
+                                </span>
+                                {% else %}
+                                <span style="display: inline-block; margin-right: 10px; color: #ef4444; font-size: 13px; font-weight: 600;">
+                                    Not complete
+                                </span>
+                                {% endif %}
+                                <a href="{% url 'player:routine_detail' routine.id %}" style="color: var(--primary); font-size: 13px;">
+                                    View Details →
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 60px 20px;">
+                <div style="font-size: 60px; margin-bottom: 20px;">📅</div>
+                <h3 style="color: var(--gray-700); margin-bottom: 10px;">No Routines Yet</h3>
+                <p style="color: var(--gray-500); max-width: 400px; margin: 0 auto;">
+                    Your coach hasn't assigned any routines yet. Check back later!
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

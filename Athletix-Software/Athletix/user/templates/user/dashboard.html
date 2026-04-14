@@ -1,0 +1,107 @@
+{% extends 'user/base.html' %}
+
+{% block title %}Dashboard - Athletix{% endblock %}
+
+{% block content %}
+<div class="dashboard-container" style="max-width: 1400px;">
+    <div class="dashboard-header">
+        <div class="user-info">
+            <h1>Welcome, {{ user.name }}!</h1>
+            <p>
+                <span class="role-badge role-{{ user.role }}">{{ user.get_role_display }}</span>
+                &nbsp;&bull;&nbsp; {{ user.email }}
+            </p>
+        </div>
+        <a href="{% url 'logout' %}" class="btn-logout">🚪 Logout</a>
+    </div>
+
+    {% if messages %}
+    <div class="messages-container" style="padding: 20px 30px 0;">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            <span>{{ message }}</span>
+            <button class="alert-close">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="dashboard-body">
+        <h2 style="color: #202124; margin-bottom: 10px;">
+            {% if user.role == 'athlete' %}🏃 Athlete Dashboard
+            {% elif user.role == 'coach' %}📋 Coach Portal
+            {% elif user.role == 'medical' %}🏥 Medical Portal
+            {% endif %}
+        </h2>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="card-icon">👤</div>
+                <h3>Full Name</h3>
+                <p>{{ user.name }}</p>
+            </div>
+            <div class="info-card">
+                <div class="card-icon">📧</div>
+                <h3>Email</h3>
+                <p style="font-size: 14px; word-break: break-all;">{{ user.email }}</p>
+            </div>
+            <div class="info-card">
+                <div class="card-icon">🎭</div>
+                <h3>Role</h3>
+                <p>{{ user.get_role_display }}</p>
+            </div>
+            <div class="info-card">
+                <div class="card-icon">📅</div>
+                <h3>Joined</h3>
+                <p>{{ user.date_joined|date:"M d, Y" }}</p>
+            </div>
+
+            {% if user.role == 'athlete' and profile %}
+            <div class="info-card">
+                <div class="card-icon">⚽</div>
+                <h3>Sport</h3>
+                <p>{{ profile.sport_type|default:"Not set" }}</p>
+            </div>
+            <div class="info-card">
+                <div class="card-icon">💪</div>
+                <h3>Fitness Level</h3>
+                <p>{{ profile.get_fitness_level_display|default:"Not set" }}</p>
+            </div>
+            {% endif %}
+
+            {% if user.role == 'coach' and profile %}
+            <div class="info-card">
+                <div class="card-icon">🎯</div>
+                <h3>Specialization</h3>
+                <p>{{ profile.specialization|default:"Not set" }}</p>
+            </div>
+            <div class="info-card">
+                <div class="card-icon">📊</div>
+                <h3>Experience</h3>
+                <p>{{ profile.experience_years }} years</p>
+            </div>
+            {% endif %}
+
+            {% if user.role == 'medical' and profile %}
+            <div class="info-card">
+                <div class="card-icon">🩺</div>
+                <h3>Specialty</h3>
+                <p>{{ profile.specialty|default:"Not set" }}</p>
+            </div>
+            <div class="info-card">
+                <div class="card-icon">🪪</div>
+                <h3>License No</h3>
+                <p>{{ profile.license_no|default:"Not set" }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div style="margin-top: 30px; padding: 20px; background: #f1f3f4; border-radius: 10px; text-align: center;">
+            <p style="color: #5f6368; font-size: 14px;">
+                🚧 More features (Training, Performance, Injury Tracking, Messaging) coming soon!
+            </p>
+            <a href="{% url 'home' %}" style="color: #1a73e8; text-decoration: none; font-weight: 600; font-size: 14px;">← Back to Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

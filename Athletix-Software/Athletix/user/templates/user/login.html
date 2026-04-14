@@ -1,0 +1,59 @@
+{% extends 'user/base.html' %}
+
+{% block title %}Login - Athletix{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-header">
+        <div class="logo">ATHLETI<span>X</span></div>
+        <div class="subtitle">Student Intelligence for Athletic Fitness & Health</div>
+    </div>
+
+    {% if messages %}
+    <div class="messages-container" style="padding-top: 20px;">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            <span>{{ message }}</span>
+            <button class="alert-close">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="auth-body">
+        <h2>Welcome Back</h2>
+        <form method="POST" novalidate>
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                <ul class="error-list">{% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-wrapper">
+                    {{ form.password }}
+                    <button type="button" class="toggle-password" onclick="togglePassword('password')">👁</button>
+                </div>
+                {% if form.password.errors %}
+                <ul class="error-list">{% for error in form.password.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary">Log In</button>
+        </form>
+    </div>
+
+    <div class="auth-footer">
+        <a href="{% url 'forgot_password' %}">Forgot Password?</a>
+        <span class="separator">|</span>
+        <a href="{% url 'signup' %}">Create Account</a>
+        <span class="separator">|</span>
+        <a href="{% url 'home' %}">← Home</a>
+    </div>
+</div>
+{% endblock %}

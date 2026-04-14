@@ -1,0 +1,125 @@
+{% extends 'user/base.html' %}
+
+{% block title %}{{ routine.title }} - Athletix{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="user-info">
+            <h1>{{ routine.title }} 📋</h1>
+            <p>Routine Details</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'home' %}" class="btn-logout">🏠 Home</a>
+            <a href="{% url 'player:daily_routine' %}" class="btn-logout">All Routines</a>
+            <a href="{% url 'player:dashboard' %}" class="btn-logout">Dashboard</a>
+        </div>
+    </div>
+
+    <div class="dashboard-body">
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px;">
+            <!-- Main Details -->
+            <div>
+                <div class="info-card" style="padding: 30px;">
+                    <div style="margin-bottom: 25px;">
+                        <span style="background: var(--primary); color: white; padding: 6px 16px; border-radius: 20px; font-size: 14px; text-transform: capitalize;">
+                            {{ routine.day_of_week }}
+                        </span>
+                        <span style="background: var(--secondary); color: white; padding: 6px 16px; border-radius: 20px; font-size: 14px; margin-left: 10px;">
+                            {{ routine.start_time|time:"H:i" }} - {{ routine.end_time|time:"H:i" }}
+                        </span>
+                    </div>
+
+                    <h2 style="color: var(--gray-900); margin-bottom: 20px;">{{ routine.title }}</h2>
+                    
+                    {% if routine.description %}
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color: var(--gray-700); margin-bottom: 10px;">Description</h4>
+                        <p style="color: var(--gray-600); line-height: 1.7;">{{ routine.description }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if routine.exercises %}
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="color: var(--gray-700); margin-bottom: 15px;">Exercises</h4>
+                        <div style="background: var(--gray-100); padding: 20px; border-radius: var(--radius);">
+                            <pre style="white-space: pre-wrap; font-family: inherit; color: var(--gray-700); margin: 0;">{{ routine.exercises }}</pre>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if routine.notes %}
+                    <div>
+                        <h4 style="color: var(--gray-700); margin-bottom: 10px;">Coach's Notes</h4>
+                        <div style="background: #FFF8E1; padding: 15px; border-radius: var(--radius); border-left: 4px solid var(--accent);">
+                            <p style="color: var(--gray-700); line-height: 1.6;">{{ routine.notes }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div>
+                <!-- Sport Info -->
+                <div class="info-card" style="padding: 25px; margin-bottom: 20px;">
+                    <h4 style="color: var(--gray-700); margin-bottom: 15px;">Sport</h4>
+                    <div style="display: flex; align-items: center;">
+                        <div style="width: 50px; height: 50px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                            <span style="color: white; font-size: 24px;">🏆</span>
+                        </div>
+                        <div>
+                            <h3 style="color: var(--gray-900);">{{ routine.sport.name }}</h3>
+                            {% if routine.sport.description %}
+                            <p style="color: var(--gray-500); font-size: 13px;">{{ routine.sport.description|truncatewords:8 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coach Info -->
+                <div class="info-card" style="padding: 25px;">
+                    <h4 style="color: var(--gray-700); margin-bottom: 15px;">Coach</h4>
+                    <div style="display: flex; align-items: center;">
+                        <div style="width: 50px; height: 50px; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                            <span style="color: white; font-size: 18px;">{{ routine.coach.user.first_name|slice:":1" }}{{ routine.coach.user.last_name|slice:":1" }}</span>
+                        </div>
+                        <div>
+                            <h3 style="color: var(--gray-900);">{{ routine.coach.user.first_name }} {{ routine.coach.user.last_name }}</h3>
+                            {% if routine.coach.specialization %}
+                            <p style="color: var(--gray-500); font-size: 13px;">{{ routine.coach.specialization }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Duration -->
+                <div class="info-card" style="padding: 25px; margin-top: 20px; text-align: center;">
+                    <h4 style="color: var(--gray-500); font-size: 12px; text-transform: uppercase; margin-bottom: 10px;">Time</h4>
+                    <p style="color: var(--primary); font-size: 24px; font-weight: 700;">
+                        {{ routine.start_time|time:"H:i" }} - {{ routine.end_time|time:"H:i" }}
+                    </p>
+                </div>
+
+                <div class="info-card" style="padding: 25px; margin-top: 20px;">
+                    <h4 style="color: var(--gray-700); margin-bottom: 12px;">Completion Status</h4>
+                    {% if routine.coach_approved_completion %}
+                    <p style="color: #10b981; font-weight: 600;">Complete (Coach Approved)</p>
+                    {% else %}
+                    <p style="color: #ef4444; font-weight: 600;">Not complete</p>
+                    {% endif %}
+                    {% if routine.completion_message %}
+                    <p style="color: var(--gray-500); font-size: 13px; margin-top: 8px;">{{ routine.completion_message }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <a href="{% url 'player:daily_routine' %}" class="btn btn-primary" style="width: auto; padding: 12px 30px; background: var(--gray-500);">
+                ← Back to All Routines
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

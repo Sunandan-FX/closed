@@ -1,0 +1,117 @@
+{% extends 'user/base.html' %}
+
+{% block title %}My Coaches - Athletix{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="user-info">
+            <h1>My Coaches 👨‍🏫</h1>
+            <p>Your assigned coaches and pending requests</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'home' %}" class="btn-logout">🏠 Home</a>
+            <a href="{% url 'player:find_coaches' %}" class="btn-logout">Find Coaches</a>
+            <a href="{% url 'player:dashboard' %}" class="btn-logout">Dashboard</a>
+        </div>
+    </div>
+
+    <div class="dashboard-body">
+        {% if messages %}
+        <div class="messages-container" style="margin-bottom: 20px;">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                <span>{{ message }}</span>
+                <button class="alert-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Active Coaches -->
+        <div style="margin-bottom: 40px;">
+            <h2 style="color: var(--gray-900); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--primary);">
+                ✓ Active Coaches
+            </h2>
+            
+            {% if active_coaches %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                {% for ac in active_coaches %}
+                <div class="info-card" style="padding: 25px; border-left: 4px solid var(--secondary);">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <div style="width: 50px; height: 50px; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; margin-right: 15px;">
+                            {{ ac.coach.first_name|slice:":1" }}{{ ac.coach.last_name|slice:":1" }}
+                        </div>
+                        <div>
+                            <h3 style="color: var(--gray-900);">{{ ac.coach.first_name }} {{ ac.coach.last_name }}</h3>
+                            <p style="color: var(--secondary); font-size: 13px;">Active Coach</p>
+                        </div>
+                    </div>
+                    
+                    {% if ac.sport %}
+                    <div style="margin-bottom: 10px;">
+                        <span style="background: var(--primary); color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px;">
+                            {{ ac.sport.name }}
+                        </span>
+                    </div>
+                    {% endif %}
+
+                    <p style="color: var(--gray-500); font-size: 13px;">
+                        Since {{ ac.start_date|date:"M d, Y" }}
+                    </p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="info-card" style="padding: 40px; text-align: center;">
+                <p style="color: var(--gray-500);">You don't have any active coaches yet.</p>
+                <a href="{% url 'player:find_coaches' %}" class="btn btn-primary" style="width: auto; padding: 10px 30px; margin-top: 15px; display: inline-block;">
+                    Find a Coach
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Pending Requests -->
+        <div>
+            <h2 style="color: var(--gray-900); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--accent);">
+                ⏳ Pending Requests
+            </h2>
+            
+            {% if pending_requests %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                {% for request in pending_requests %}
+                <div class="info-card" style="padding: 25px; border-left: 4px solid var(--accent);">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <div style="width: 50px; height: 50px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; margin-right: 15px;">
+                            {{ request.coach.first_name|slice:":1" }}{{ request.coach.last_name|slice:":1" }}
+                        </div>
+                        <div>
+                            <h3 style="color: var(--gray-900);">{{ request.coach.first_name }} {{ request.coach.last_name }}</h3>
+                            <p style="color: var(--accent); font-size: 13px;">Pending</p>
+                        </div>
+                    </div>
+                    
+                    {% if request.sport %}
+                    <div style="margin-bottom: 10px;">
+                        <span style="background: var(--gray-200); color: var(--gray-700); padding: 4px 12px; border-radius: 15px; font-size: 12px;">
+                            {{ request.sport.name }}
+                        </span>
+                    </div>
+                    {% endif %}
+
+                    <p style="color: var(--gray-500); font-size: 13px;">
+                        Requested on {{ request.created_at|date:"M d, Y" }}
+                    </p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="info-card" style="padding: 40px; text-align: center;">
+                <p style="color: var(--gray-500);">No pending requests.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
