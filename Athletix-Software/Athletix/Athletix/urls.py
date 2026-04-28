@@ -28,6 +28,7 @@ urlpatterns = [
     path('coach/', include('coach.urls')),
     path('medical-staff/', include('medical_staff.urls')),
     path('admin-app/', include('Admin.urls')),
+    path('chat/', include('chat.urls')),
 ]
 
 if settings.DEBUG:
