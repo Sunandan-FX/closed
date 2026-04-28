@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.db.models import Q
 
 from .models import Sport, CoachRequest, AthleteCoach, DailyRoutine, AthleteSport
+from .performance_utils import build_routine_performance_data
 from user.models import User, CoachProfile
 
 
@@ -36,6 +37,12 @@ def player_dashboard(request):
     from datetime import datetime
     today = datetime.now().strftime('%A').lower()
     todays_routines = DailyRoutine.objects.filter(athlete=user, day=today)
+
+    from medical_staff.forms import AthleteSelfHealthRecordForm
+    from medical_staff.models import AthleteHealthRecord
+    recent_health_records = AthleteHealthRecord.objects.filter(athlete=user).order_by('-created_at')[:5]
+    from medical_staff.models import MedicalFeedback
+    recent_feedbacks = MedicalFeedback.objects.filter(athlete=user).order_by('-created_at')[:5]
     
     context = {
         'user': user,
@@ -43,6 +50,9 @@ def player_dashboard(request):
         'active_coaches': active_coaches,
         'pending_requests': pending_requests,
         'todays_routines': todays_routines,
+        'athlete_health_form': AthleteSelfHealthRecordForm(),
+        'recent_health_records': recent_health_records,
+        'recent_feedbacks': recent_feedbacks,
     }
     return render(request, 'player/dashboard.html', context)
 
@@ -264,4 +274,19 @@ def routine_detail(request, routine_id):
         'routine': routine,
     }
     return render(request, 'player/routine_detail.html', context)
+
+
+@login_required
+@athlete_required
+def player_performance(request):
+    """Show a full performance chart for the athlete based on routines."""
+    user = request.user
+    routines = DailyRoutine.objects.filter(athlete=user)
+    performance_data = build_routine_performance_data(routines)
+
+    context = {
+        'user': user,
+        **performance_data,
+    }
+    return render(request, 'player/performance.html', context)
 

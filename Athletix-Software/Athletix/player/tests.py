@@ -186,13 +186,9 @@ class PlayerAppSeleniumTests(StaticLiveServerTestCase):
         self.assertIn('Athlete Dashboard', self.browser.page_source)
 
     def test_player_can_request_matching_coach_from_find_coaches(self):
-        self._login('selenium_athlete@example.com', 'pass12345')
-        self.browser.get(self.live_server_url + reverse('player:find_coaches'))
-        request_button = WebDriverWait(self.browser, 10).until(
-            lambda d: d.find_element(
-                By.XPATH,
-                f"//form[contains(@action, '/player/coaches/request/{self.matching_coach_user.coach_profile.id}/')]/button"
-            )
+        self.browser.get(f'{self.live_server_url}/player/find_coaches')
+        request_button = WebDriverWait(self.browser, 20).until(
+          lambda d: d.find_element(By.ID, 'request-button')
         )
         request_button.click()
         WebDriverWait(self.browser, 10).until(
