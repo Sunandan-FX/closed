@@ -1,0 +1,502 @@
+{% extends 'user/base.html' %}
+
+{% block title %}Athlete Performance Search - Athletix{% endblock %}
+
+{% block content %}
+<style>
+    html, body {
+        height: 100%;
+    }
+    body {
+        align-items: stretch;
+        justify-content: flex-start;
+        padding: 0;
+    }
+    .page-shell {
+        width: 100%;
+        min-height: 100vh;
+        padding: 20px;
+    }
+    .performance-container {
+        width: 100%;
+        max-width: 1320px;
+        margin: 0 auto;
+    }
+    .hero-bar {
+        background: linear-gradient(120deg, #12395b 0%, #1b4d75 52%, #1a6d8b 100%);
+        color: #fff;
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        margin-bottom: 18px;
+        box-shadow: 0 18px 36px rgba(18, 57, 91, 0.22);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+    .hero-bar h1 {
+        margin: 0;
+        font-size: clamp(24px, 3vw, 34px);
+    }
+    .hero-bar p {
+        margin: 4px 0 0;
+        opacity: 0.92;
+        font-size: 14px;
+    }
+    .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .hero-btn {
+        border: 1px solid rgba(255, 255, 255, 0.34);
+        background: rgba(255, 255, 255, 0.16);
+        color: #fff;
+        padding: 10px 16px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 13px;
+        transition: all 0.2s ease;
+    }
+    .hero-btn:hover {
+        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.24);
+    }
+    .search-card,
+    .summary-card,
+    .chart-card,
+    .list-card {
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid #d8e7f5;
+        border-radius: var(--radius-lg);
+        box-shadow: 0 12px 26px rgba(18, 57, 91, 0.1);
+        padding: 18px;
+    }
+    .search-form {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .search-input {
+        flex: 1;
+        min-width: 240px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid #cfe1f6;
+        font-size: 14px;
+        background: #fbfdff;
+    }
+    .search-input:focus {
+        outline: none;
+        border-color: #277cb6;
+        box-shadow: 0 0 0 3px rgba(39, 124, 182, 0.12);
+    }
+    .search-btn {
+        padding: 12px 18px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(140deg, #1767a0, #155887);
+        color: #fff;
+        font-weight: 800;
+        cursor: pointer;
+    }
+    .search-btn:hover {
+        transform: translateY(-1px);
+    }
+    .search-results {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 14px;
+        margin-top: 18px;
+    }
+    .athlete-card {
+        border: 1px solid #d8e7f5;
+        border-radius: 14px;
+        padding: 16px;
+        background: #fff;
+        box-shadow: 0 8px 16px rgba(18, 57, 91, 0.06);
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        transition: all 0.2s ease;
+    }
+    .athlete-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 22px rgba(18, 57, 91, 0.12);
+        border-color: #7cb6df;
+    }
+    .athlete-top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+    .mini-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(140deg, #14507b, #1a7b8f);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+    }
+    .athlete-name {
+        margin: 0;
+        color: #0d3a5f;
+        font-size: 16px;
+    }
+    .athlete-meta {
+        color: #587189;
+        font-size: 13px;
+    }
+    .result-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    .result-pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.25px;
+        background: #eaf4fc;
+        color: #0f527e;
+    }
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+    .summary-label {
+        font-size: 12px;
+        color: #6c8094;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        font-weight: 700;
+    }
+    .summary-value {
+        margin-top: 8px;
+        color: #0d3a5f;
+        font-size: 28px;
+        font-weight: 800;
+        line-height: 1;
+    }
+    .charts-grid {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+    .chart-wrap {
+        position: relative;
+        height: 320px;
+    }
+    .chart-wrap.small {
+        height: 280px;
+    }
+    .routine-list {
+        display: grid;
+        gap: 10px;
+    }
+    .routine-row {
+        padding: 14px;
+        border-radius: 12px;
+        border: 1px solid #d8e7f5;
+        background: #fbfdff;
+    }
+    .routine-row-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: flex-start;
+        margin-bottom: 6px;
+    }
+    .routine-row h4 {
+        margin: 0;
+        color: #0d3a5f;
+        font-size: 15px;
+    }
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.25px;
+    }
+    .status-pill.complete {
+        background: #e7f8ef;
+        color: #146c43;
+    }
+    .status-pill.pending {
+        background: #fff4df;
+        color: #9a6700;
+    }
+    .empty-state {
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px dashed #c8dced;
+        border-radius: var(--radius-lg);
+        padding: 56px 20px;
+        text-align: center;
+        color: #587189;
+    }
+    @media (max-width: 1100px) {
+        .summary-grid,
+        .charts-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    @media (max-width: 768px) {
+        .page-shell {
+            padding: 12px;
+        }
+        .hero-bar {
+            padding: 16px;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .search-form {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .search-input {
+            width: 100%;
+        }
+        .chart-wrap,
+        .chart-wrap.small {
+            height: 250px;
+        }
+    }
+</style>
+
+<div class="page-shell">
+    <div class="performance-container">
+        <div class="hero-bar">
+            <div>
+                <h1>Athlete Performance Search</h1>
+                <p>Search by player name and review their routine-based training performance.</p>
+            </div>
+            <div class="hero-actions">
+                <a href="{% url 'coach:dashboard' %}" class="hero-btn">Dashboard</a>
+                <a href="{% url 'coach:my_athletes' %}" class="hero-btn">My Athletes</a>
+                <a href="{% url 'home' %}" class="hero-btn">Home</a>
+            </div>
+        </div>
+
+        <div class="search-card">
+            <form method="get" class="search-form">
+                <input type="text" name="q" class="search-input" placeholder="Search athlete by name or email" value="{{ search_query }}">
+                <button type="submit" class="search-btn">Search</button>
+            </form>
+
+            {% if search_query %}
+            <p style="margin-top: 10px; color: #587189; font-size: 13px;">Showing results for "{{ search_query }}"</p>
+            {% else %}
+            <p style="margin-top: 10px; color: #587189; font-size: 13px;">Search any active athlete you coach to open their performance chart.</p>
+            {% endif %}
+
+            {% if search_results %}
+            <div class="search-results">
+                {% for result in search_results %}
+                <a href="?q={{ search_query|urlencode }}&athlete={{ result.relation_id }}" class="athlete-card">
+                    <div class="athlete-top">
+                        <div class="mini-avatar">{{ result.athlete.first_name|slice:":1" }}{{ result.athlete.last_name|slice:":1" }}</div>
+                        <div>
+                            <h3 class="athlete-name">{{ result.athlete.first_name }} {{ result.athlete.last_name }}</h3>
+                            <div class="athlete-meta">{{ result.athlete.email }}</div>
+                        </div>
+                    </div>
+                    <div class="athlete-meta">Sport: {{ result.sport.name }}</div>
+                    <div class="result-badges">
+                        <span class="result-pill">{{ result.completion_rate }}% complete</span>
+                        <span class="result-pill">{{ result.total_routines }} routines</span>
+                        <span class="result-pill">{{ result.performance_level }}</span>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% elif search_query %}
+            <div class="empty-state" style="margin-top: 18px; padding: 32px 20px;">
+                <h3>No athletes matched this search</h3>
+                <p>Try a different name or clear the search to see all coached athletes.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if selected_summary %}
+        <div style="margin-top: 18px;">
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <div class="summary-label">Athlete</div>
+                    <div class="summary-value" style="font-size: 22px;">{{ selected_summary.athlete.first_name }} {{ selected_summary.athlete.last_name }}</div>
+                    <div class="athlete-meta">{{ selected_summary.sport.name }}</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Completion Rate</div>
+                    <div class="summary-value">{{ selected_summary.completion_rate }}%</div>
+                    <div class="athlete-meta">Approved by coach</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Training Hours</div>
+                    <div class="summary-value">{{ selected_summary.total_hours }}</div>
+                    <div class="athlete-meta">Routine workload</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Performance Level</div>
+                    <div class="summary-value" style="font-size: 24px; margin-top: 12px;">{{ selected_summary.performance_level }}</div>
+                    <div class="athlete-meta">Current training level</div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>Weekly Workload</h3>
+                    <div class="chart-wrap">
+                        <canvas id="weeklyChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>Completion Split</h3>
+                    <div class="chart-wrap small">
+                        <canvas id="completionChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>Sport Distribution</h3>
+                    <div class="chart-wrap small">
+                        <canvas id="sportChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="list-card">
+                <h3>Recent Routine Work</h3>
+                <div class="routine-list">
+                    {% for routine in selected_summary.recent_routines %}
+                    <div class="routine-row">
+                        <div class="routine-row-top">
+                            <div>
+                                <h4>{{ routine.title }}</h4>
+                                <div class="athlete-meta">{{ routine.day|capfirst }} • {{ routine.start_time|time:"H:i" }} - {{ routine.end_time|time:"H:i" }}</div>
+                            </div>
+                            {% if routine.coach_approved_completion %}
+                            <span class="status-pill complete">Complete</span>
+                            {% else %}
+                            <span class="status-pill pending">Not complete</span>
+                            {% endif %}
+                        </div>
+                        <div class="athlete-meta">{{ routine.sport.name }} • {{ routine.completion_message|default:"No coach note" }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if not selected_summary and not search_query and not search_results %}
+        <div class="empty-state" style="margin-top: 18px;">
+            <h3>Search an athlete to view performance</h3>
+            <p>Once you select a player, their routine chart and completion level will appear here.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if selected_summary %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+    const weeklyData = JSON.parse('{{ selected_summary.weekly_chart_json|escapejs }}');
+    const completionData = JSON.parse('{{ selected_summary.completion_chart_json|escapejs }}');
+    const sportData = JSON.parse('{{ selected_summary.sport_chart_json|escapejs }}');
+
+    new Chart(document.getElementById('weeklyChart'), {
+        type: 'bar',
+        data: {
+            labels: weeklyData.labels,
+            datasets: [
+                {
+                    label: 'Total Routines',
+                    data: weeklyData.total,
+                    backgroundColor: 'rgba(31, 99, 143, 0.78)',
+                    borderRadius: 10,
+                },
+                {
+                    label: 'Completed',
+                    data: weeklyData.completed,
+                    backgroundColor: 'rgba(22, 163, 74, 0.72)',
+                    borderRadius: 10,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { precision: 0 } }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('completionChart'), {
+        type: 'doughnut',
+        data: {
+            labels: completionData.labels,
+            datasets: [{
+                data: completionData.values,
+                backgroundColor: ['rgba(22, 163, 74, 0.86)', 'rgba(239, 168, 37, 0.88)'],
+                borderWidth: 0,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    if (sportData.labels.length) {
+        new Chart(document.getElementById('sportChart'), {
+            type: 'pie',
+            data: {
+                labels: sportData.labels,
+                datasets: [{
+                    data: sportData.values,
+                    backgroundColor: [
+                        'rgba(31, 99, 143, 0.82)',
+                        'rgba(22, 163, 74, 0.82)',
+                        'rgba(167, 57, 116, 0.82)',
+                        'rgba(217, 129, 39, 0.82)',
+                        'rgba(90, 111, 134, 0.82)'
+                    ],
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+</script>
+{% endif %}
+{% endblock %}

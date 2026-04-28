@@ -3,14 +3,107 @@
 {% block title %}Coach Dashboard - Athletix{% endblock %}
 
 {% block content %}
+<style>
+    .pro-hero {
+        background: linear-gradient(135deg, #12395b 0%, #1b4d75 55%, #1a6d8b 100%);
+        color: #fff;
+        border-radius: var(--radius);
+        padding: 22px;
+        box-shadow: 0 16px 30px rgba(18, 57, 91, 0.22);
+        margin-bottom: 24px;
+    }
+    .pro-hero h2 {
+        margin: 0 0 6px 0;
+        font-size: 24px;
+    }
+    .pro-hero p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 14px;
+    }
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+    }
+    .action-chip {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        border: 1px solid #dbe7f3;
+        background: #fff;
+        color: #164466;
+        transition: var(--transition);
+    }
+    .action-chip:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(22, 68, 102, 0.15);
+        background: #f4f9ff;
+    }
+    .section-card {
+        background: #fff;
+        border: 1px solid #dce8f3;
+        border-radius: var(--radius);
+        padding: 18px;
+        box-shadow: 0 8px 20px rgba(23, 52, 80, 0.08);
+    }
+    .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+    .section-head h2 {
+        margin: 0;
+        font-size: 20px;
+        color: #173e60;
+    }
+    .section-head a {
+        color: #1a5e90;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 13px;
+    }
+    .request-grid,
+    .athlete-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 14px;
+    }
+    .request-item,
+    .athlete-item {
+        border: 1px solid #d9e6f2;
+        border-radius: 12px;
+        padding: 14px;
+        background: #fcfeff;
+    }
+    .mini-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+</style>
 <div class="dashboard-container">
     <div class="dashboard-header">
         <div class="user-info">
             <h1>Welcome, Coach {{ user.first_name }}! 👨‍🏫</h1>
-            <p>Coach Dashboard</p>
+            <p>Manage athlete requests, routines, and performance plans</p>
         </div>
         <div class="header-actions">
-            <a href="{% url 'home' %}" class="btn-logout">🏠 Home</a>
+            <a href="{% url 'home' %}" class="btn-logout">Home</a>
+            <a href="{% url 'profile_search' %}" class="btn-logout">Search Profiles</a>
             <a href="{% url 'coach:profile' %}" class="btn-logout">My Profile</a>
             <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
         </div>
@@ -28,23 +121,23 @@
         </div>
         {% endif %}
 
-        <!-- Quick Actions - Moved to Top -->
-        <div style="margin-bottom: 30px;">
-            <h2 style="margin-bottom: 15px; color: var(--gray-900);">⚡ Quick Actions</h2>
-            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                <a href="{% url 'coach:athlete_requests' %}" class="btn btn-primary" style="display: inline-block; width: auto; padding: 12px 24px; text-decoration: none;">
-                    📩 Review Requests
-                </a>
-                <a href="{% url 'coach:my_athletes' %}" class="btn btn-primary" style="display: inline-block; width: auto; padding: 12px 24px; background: var(--secondary); text-decoration: none;">
-                    🏃 My Athletes
-                </a>
-                <a href="{% url 'coach:profile' %}" class="btn btn-primary" style="display: inline-block; width: auto; padding: 12px 24px; background: var(--gray-700); text-decoration: none;">
-                    👤 My Profile
-                </a>
+        <div class="pro-hero">
+            <h2>Coach Command Center</h2>
+            <p>Everything you need to keep athlete progression organized and on schedule.</p>
+        </div>
+
+        <div class="section-card" style="margin-bottom: 22px;">
+            <div class="section-head">
+                <h2>⚡ Quick Actions</h2>
+            </div>
+            <div class="action-grid">
+                <a href="{% url 'coach:athlete_requests' %}" class="action-chip">Review Requests</a>
+                <a href="{% url 'coach:my_athletes' %}" class="action-chip">My Athletes</a>
+                <a href="{% url 'coach:performance' %}" class="action-chip">Search Performance</a>
+                <a href="{% url 'coach:profile' %}" class="action-chip">My Profile</a>
             </div>
         </div>
 
-        <!-- Quick Stats -->
         <div class="info-grid">
             <div class="info-card">
                 <div class="card-icon">🏃</div>
@@ -71,18 +164,17 @@
             </div>
         </div>
 
-        <!-- Pending Requests Preview -->
         {% if pending_requests %}
-        <div style="margin-top: 30px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h2 style="color: var(--gray-900);">📩 Pending Athlete Requests</h2>
-                <a href="{% url 'coach:athlete_requests' %}" style="color: var(--primary); font-size: 14px;">View All →</a>
+        <div class="section-card" style="margin-top: 24px;">
+            <div class="section-head">
+                <h2>📩 Pending Athlete Requests</h2>
+                <a href="{% url 'coach:athlete_requests' %}">View All →</a>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">
+            <div class="request-grid">
                 {% for request in pending_requests|slice:":3" %}
-                <div class="info-card" style="padding: 20px; border-left: 4px solid var(--accent);">
+                <div class="request-item" style="border-left: 4px solid var(--accent);">
                     <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                        <div style="width: 45px; height: 45px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin-right: 12px;">
+                        <div class="mini-avatar" style="background: var(--primary); margin-right: 12px;">
                             {{ request.athlete.first_name|slice:":1" }}{{ request.athlete.last_name|slice:":1" }}
                         </div>
                         <div>
@@ -109,18 +201,17 @@
         </div>
         {% endif %}
 
-        <!-- My Athletes Preview -->
         {% if my_athletes %}
-        <div style="margin-top: 30px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h2 style="color: var(--gray-900);">🏃 My Athletes</h2>
-                <a href="{% url 'coach:my_athletes' %}" style="color: var(--primary); font-size: 14px;">View All →</a>
+        <div class="section-card" style="margin-top: 24px;">
+            <div class="section-head">
+                <h2>🏃 My Athletes</h2>
+                <a href="{% url 'coach:my_athletes' %}">View All →</a>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+            <div class="athlete-grid">
                 {% for ac in my_athletes|slice:":4" %}
-                <div class="info-card" style="padding: 20px;">
+                <div class="athlete-item">
                     <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                        <div style="width: 45px; height: 45px; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; margin-right: 12px;">
+                        <div class="mini-avatar" style="background: var(--secondary); margin-right: 12px;">
                             {{ ac.athlete.first_name|slice:":1" }}{{ ac.athlete.last_name|slice:":1" }}
                         </div>
                         <div>

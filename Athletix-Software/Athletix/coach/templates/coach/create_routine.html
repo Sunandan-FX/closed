@@ -10,7 +10,7 @@
             <p>For {{ athlete.user.first_name }} {{ athlete.user.last_name }}</p>
         </div>
         <div class="header-actions">
-            <a href="{% url 'home' %}" class="btn-logout">🏠 Home</a>
+            <a href="{% url 'home' %}" class="btn-logout">Home</a>
             <a href="{% url 'coach:athlete_detail' athlete.id %}" class="btn-logout">Back to Athlete</a>
             <a href="{% url 'coach:dashboard' %}" class="btn-logout">Dashboard</a>
         </div>

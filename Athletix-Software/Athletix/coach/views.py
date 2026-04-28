@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 
 from player.models import Sport, CoachRequest, AthleteCoach, DailyRoutine, AthleteSport
+from player.performance_utils import build_routine_performance_data
 from user.models import User
 
 
@@ -347,4 +348,62 @@ def approve_routine_completion(request, routine_id):
     if athlete_profile:
         return redirect('coach:athlete_detail', athlete_id=athlete_profile.id)
     return redirect('coach:my_athletes')
+
+
+@login_required
+@coach_required
+def performance_search(request):
+    """Search coached athletes by name and inspect their performance charts."""
+    user = request.user
+    query = request.GET.get('q', '').strip()
+    selected_relation_id = request.GET.get('athlete', '').strip()
+
+    relations = AthleteCoach.objects.filter(coach=user, is_active=True).select_related('athlete', 'sport')
+    if query:
+        relations = relations.filter(
+            Q(athlete__first_name__icontains=query) |
+            Q(athlete__last_name__icontains=query) |
+            Q(athlete__email__icontains=query)
+        )
+
+    search_results = []
+    for relation in relations:
+        summary = build_routine_performance_data(
+            DailyRoutine.objects.filter(athlete=relation.athlete, coach=user)
+        )
+        athlete_profile = getattr(relation.athlete, 'athlete_profile', None)
+        summary.update({
+            'relation_id': relation.id,
+            'athlete': relation.athlete,
+            'athlete_profile': athlete_profile,
+            'sport': relation.sport,
+        })
+        search_results.append(summary)
+
+    selected_relation = None
+    selected_summary = None
+    if selected_relation_id.isdigit():
+        selected_relation = relations.filter(id=int(selected_relation_id)).first()
+        if selected_relation:
+            selected_summary = build_routine_performance_data(
+                DailyRoutine.objects.filter(athlete=selected_relation.athlete, coach=user)
+            )
+            selected_summary.update({
+                'relation_id': selected_relation.id,
+                'athlete': selected_relation.athlete,
+                'athlete_profile': getattr(selected_relation.athlete, 'athlete_profile', None),
+                'sport': selected_relation.sport,
+            })
+    elif search_results:
+        selected_summary = search_results[0]
+        selected_relation = relations.filter(id=selected_summary['relation_id']).first()
+
+    context = {
+        'search_query': query,
+        'search_results': search_results,
+        'selected_summary': selected_summary,
+        'selected_relation': selected_relation,
+        'total_results': len(search_results),
+    }
+    return render(request, 'coach/performance_search.html', context)
 
