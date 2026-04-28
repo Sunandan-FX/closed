@@ -3,6 +3,33 @@
 {% block title %}My Profile - Athletix{% endblock %}
 
 {% block content %}
+<style>
+    .med-card {
+        border: 1px solid #d9e7f3;
+        background: linear-gradient(180deg, #f7fbff 0%, #eef6fd 100%);
+    }
+    .med-title {
+        color: #0f3555;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+    }
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .status-watch {
+        color: #7c2d12;
+        background: #ffedd5;
+    }
+    .status-good {
+        color: #065f46;
+        background: #d1fae5;
+    }
+</style>
 <div class="dashboard-container">
     <div class="dashboard-header">
         <div class="user-info">
@@ -10,7 +37,7 @@
             <p>View and manage your {% if user.role == 'athlete' %}athlete{% elif user.role == 'coach' %}coach{% else %}{{ user.get_role_display }}{% endif %} profile</p>
         </div>
         <div class="header-actions">
-            <a href="{% url 'home' %}" class="btn-logout">🏠 Home</a>
+            <a href="{% url 'home' %}" class="btn-logout">Home</a>
             {% if user.role == 'athlete' %}
             <a href="{% url 'player:dashboard' %}" class="btn-logout">Dashboard</a>
             {% elif user.role == 'coach' %}
@@ -52,7 +79,7 @@
                 <p style="color: var(--gray-600);">
                     {% if user.role == 'athlete' %}🏃 Athlete
                     {% elif user.role == 'coach' %}👨‍🏫 Coach
-                    {% elif user.role == 'medical' %}🏥 Medical Staff
+                    {% elif user.role == 'medical' %}Doctor - {% if profile and profile.specialty %}{{ profile.specialty }}{% else %}Specialty Not Set{% endif %}
                     {% else %}{{ user.get_role_display }}{% endif %}
                 </p>
                 {% if user.blood_group %}
@@ -132,6 +159,71 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="info-card med-card" style="padding: 25px; margin-top: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--gray-200); padding-bottom: 10px;">
+                        <h3 class="med-title">🩺 Add Health & Injury Metrics</h3>
+                        <span style="font-size: 12px; color: var(--gray-600);">Visible to medical staff</span>
+                    </div>
+                    <form method="post" action="{% url 'medical_staff:add_self_health_record' %}">
+                        {% csrf_token %}
+                        {{ athlete_health_form.as_p }}
+                        <button type="submit" class="btn btn-primary" style="width: auto; padding: 10px 20px;">Save My Metrics</button>
+                    </form>
+                </div>
+
+                <div class="info-card med-card" style="padding: 25px; margin-top: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--gray-200); padding-bottom: 10px;">
+                        <h3 class="med-title">📋 My Recent Health Metrics</h3>
+                        <small style="color: var(--gray-600);">Latest 8 submissions</small>
+                    </div>
+                    {% if latest_self_health_records %}
+                    <div style="display:grid; gap:10px;">
+                        {% for item in latest_self_health_records %}
+                        <div style="padding: 10px 12px; border: 1px solid #d9e7f3; border-radius: var(--radius-sm); background: #ffffff;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:4px;">
+                                <strong style="color:#0f3555;">{{ item.created_at|date:"M d, Y H:i" }}</strong>
+                                {% if item.recovery_status == 'watch' or item.recovery_status == 'critical' %}
+                                <span class="status-pill status-watch">{{ item.get_recovery_status_display }}</span>
+                                {% else %}
+                                <span class="status-pill status-good">{{ item.get_recovery_status_display }}</span>
+                                {% endif %}
+                            </div>
+                            <p style="margin:0; color: var(--gray-700); font-size: 14px;">
+                                HR {{ item.heart_rate }} bpm • Fatigue {{ item.fatigue_level }}/10 • Injury {{ item.get_injury_status_display }}
+                            </p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p style="color: var(--gray-600);">No health metrics submitted yet.</p>
+                    {% endif %}
+                </div>
+
+                <div class="info-card med-card" style="padding: 25px; margin-top: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--gray-200); padding-bottom: 10px;">
+                        <h3 class="med-title">💬 Medical Feedback For You</h3>
+                        <small style="color: var(--gray-600);">Latest 8 feedback entries</small>
+                    </div>
+                    {% if medical_feedback_for_athlete %}
+                    <div style="display:grid; gap:10px;">
+                        {% for item in medical_feedback_for_athlete %}
+                        <div style="padding: 12px; border: 1px solid #d9e7f3; border-radius: var(--radius-sm); background: #ffffff;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:6px;">
+                                <strong style="color:#0f3555;">{{ item.title }}</strong>
+                                <span style="font-size:12px; color: var(--gray-600);">{{ item.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            <p style="margin:0 0 6px 0; color: var(--gray-800);">{{ item.feedback }}</p>
+                            {% if item.recommendations %}
+                            <p style="margin:0; color: var(--gray-700); font-size: 14px;"><strong>Recommendations:</strong> {{ item.recommendations }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p style="color: var(--gray-600);">No medical feedback yet.</p>
+                    {% endif %}
+                </div>
                 {% elif user.role == 'coach' %}
                 <div class="info-card" style="padding: 25px; margin-top: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--gray-200); padding-bottom: 10px;">
@@ -164,7 +256,7 @@
                 {% elif user.role == 'medical' %}
                 <div class="info-card" style="padding: 25px; margin-top: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--gray-200); padding-bottom: 10px;">
-                        <h3 style="color: var(--gray-900);">🏥 Medical Staff Details</h3>
+                        <h3 style="color: var(--gray-900);">Doctor Specialty Details</h3>
                         <a href="{% url 'profile_edit' %}" style="color: var(--primary); font-size: 13px; text-decoration: none;">✏️ Edit</a>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
