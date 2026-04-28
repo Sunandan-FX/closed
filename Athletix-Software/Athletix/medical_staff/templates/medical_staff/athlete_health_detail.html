@@ -1,0 +1,338 @@
+{% extends 'user/base.html' %}
+
+{% block title %}Athlete Health Profile - {{ athlete.name }} - Athletix{% endblock %}
+
+{% block content %}
+<style>
+    .health-header {
+        background: linear-gradient(135deg, #0f3555 0%, #14507b 55%, #1a7b8f 100%);
+        color: #fff;
+        border-radius: var(--radius);
+        padding: 28px;
+        box-shadow: 0 16px 30px rgba(15, 53, 85, 0.24);
+        margin-bottom: 24px;
+    }
+    .health-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 28px;
+    }
+    .health-header p {
+        margin: 0;
+        opacity: 0.92;
+    }
+    .back-btn {
+        display: inline-block;
+        padding: 8px 14px;
+        margin-bottom: 16px;
+        background: #f1f7fd;
+        border: 1px solid #d8e5f1;
+        border-radius: 6px;
+        color: #0e3a5d;
+        text-decoration: none;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .back-btn:hover {
+        background: #e8f0f7;
+    }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .stat-card {
+        background: #fff;
+        border: 1px solid #dce8f3;
+        border-radius: var(--radius);
+        padding: 16px;
+        box-shadow: 0 4px 12px rgba(23, 52, 80, 0.06);
+    }
+    .stat-label {
+        font-size: 12px;
+        color: #666;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+    .stat-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: #0e3a5d;
+    }
+    .section-card {
+        background: #fff;
+        border: 1px solid #dce8f3;
+        border-radius: var(--radius);
+        padding: 20px;
+        box-shadow: 0 8px 20px rgba(23, 52, 80, 0.08);
+        margin-bottom: 20px;
+    }
+    .section-title {
+        color: #0e3a5d;
+        font-weight: 700;
+        font-size: 18px;
+        margin-bottom: 16px;
+        border-bottom: 2px solid #e3ebf4;
+        padding-bottom: 8px;
+    }
+    .record-item {
+        padding: 14px;
+        border: 1px solid #e3ebf4;
+        border-radius: 8px;
+        margin-bottom: 12px;
+        background: #f8fbfd;
+    }
+    .record-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    .record-date {
+        font-size: 12px;
+        color: #666;
+        font-weight: 600;
+    }
+    .record-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .status-good {
+        color: #065f46;
+        background: #d1fae5;
+    }
+    .status-watch {
+        color: #7c2d12;
+        background: #ffedd5;
+    }
+    .status-critical {
+        color: #7f1d1d;
+        background: #fee2e2;
+    }
+    .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+    .metric {
+        background: #fff;
+        border: 1px solid #dbe7f4;
+        padding: 10px;
+        border-radius: 6px;
+    }
+    .metric-label {
+        font-size: 11px;
+        color: #666;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+    .metric-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0e3a5d;
+    }
+    .feedback-item {
+        padding: 14px;
+        border-left: 4px solid #1b6ca8;
+        background: #f0f7ff;
+        border-radius: 4px;
+        margin-bottom: 12px;
+    }
+    .feedback-title {
+        font-weight: 700;
+        color: #0e3a5d;
+        margin-bottom: 4px;
+    }
+    .feedback-type {
+        display: inline-block;
+        padding: 2px 8px;
+        background: #dbeafe;
+        color: #1e3a8a;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    .feedback-text {
+        color: #27465b;
+        font-size: 13px;
+        line-height: 1.5;
+        margin-bottom: 8px;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 30px;
+        color: #666;
+        background: #f8fbfd;
+        border-radius: 8px;
+        border: 1px dashed #dce8f3;
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="dashboard-header" style="margin-bottom: 20px;">
+        <div class="user-info">
+            <h1>Medical Staff Dashboard</h1>
+            <p>Athlete Health Profile & History</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'home' %}" class="btn-logout">Home</a>
+            <a href="{% url 'medical_staff:dashboard' %}" class="btn-logout">Dashboard</a>
+            <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="dashboard-body">
+        <a href="{% url 'medical_staff:dashboard' %}" class="back-btn">← Back to Dashboard</a>
+
+        <div class="health-header">
+            <h1>{{ athlete.name }}</h1>
+            <p>Complete Health Profile & Medical History</p>
+        </div>
+
+        {% if latest_record %}
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Heart Rate (Latest)</div>
+                <div class="stat-value">{{ latest_record.heart_rate }}<span style="font-size: 14px; color: #666;"> bpm</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Fatigue Level</div>
+                <div class="stat-value">{{ latest_record.fatigue_level }}<span style="font-size: 14px; color: #666;">/10</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Injury Status</div>
+                <div class="stat-value" style="font-size: 16px;">{{ latest_record.get_injury_status_display }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Recovery Status</div>
+                <div class="stat-value" style="font-size: 16px;">{{ latest_record.get_recovery_status_display }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Health Records Section -->
+        <div class="section-card">
+            <h2 class="section-title">📊 Health Records History ({{ health_records.count }})</h2>
+            
+            {% if health_records %}
+            <div>
+                {% for record in health_records %}
+                <div class="record-item">
+                    <div class="record-header">
+                        <div>
+                            <div class="record-date">{{ record.created_at|date:"M d, Y • H:i" }}</div>
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span class="record-status status-{% if record.recovery_status == 'good' %}good{% elif record.recovery_status == 'watch' %}watch{% else %}critical{% endif %}">
+                                {{ record.get_recovery_status_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="metric-grid">
+                        <div class="metric">
+                            <div class="metric-label">Heart Rate</div>
+                            <div class="metric-value">{{ record.heart_rate }} bpm</div>
+                        </div>
+                        {% if record.blood_pressure %}
+                        <div class="metric">
+                            <div class="metric-label">Blood Pressure</div>
+                            <div class="metric-value">{{ record.blood_pressure }}</div>
+                        </div>
+                        {% endif %}
+                        {% if record.weight_kg %}
+                        <div class="metric">
+                            <div class="metric-label">Weight</div>
+                            <div class="metric-value">{{ record.weight_kg }} kg</div>
+                        </div>
+                        {% endif %}
+                        {% if record.sleep_hours %}
+                        <div class="metric">
+                            <div class="metric-label">Sleep</div>
+                            <div class="metric-value">{{ record.sleep_hours }} hrs</div>
+                        </div>
+                        {% endif %}
+                        <div class="metric">
+                            <div class="metric-label">Fatigue</div>
+                            <div class="metric-value">{{ record.fatigue_level }}/10</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Injury</div>
+                            <div class="metric-value" style="font-size: 12px;">{{ record.get_injury_status_display }}</div>
+                        </div>
+                    </div>
+
+                    {% if record.injury_notes %}
+                    <div style="margin-top: 10px; padding: 10px; background: #fff; border-radius: 4px;">
+                        <strong style="color: #0e3a5d; font-size: 12px;">Injury Notes:</strong>
+                        <p style="margin: 4px 0; color: #27465b; font-size: 13px;">{{ record.injury_notes }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if record.performance_notes %}
+                    <div style="margin-top: 8px; padding: 10px; background: #fff; border-radius: 4px;">
+                        <strong style="color: #0e3a5d; font-size: 12px;">Performance Notes:</strong>
+                        <p style="margin: 4px 0; color: #27465b; font-size: 13px;">{{ record.performance_notes }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if record.review_requested %}
+                    <div style="margin-top: 8px; padding: 8px; background: #fff3cd; border-radius: 4px; border-left: 3px solid #ffc107;">
+                        <span style="font-size: 12px; color: #856404; font-weight: 600;">🔔 Review Requested</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>No health records submitted yet</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Feedback Section -->
+        <div class="section-card">
+            <h2 class="section-title">💬 Medical Feedback History ({{ feedback_records.count }})</h2>
+            
+            {% if feedback_records %}
+            <div>
+                {% for feedback in feedback_records %}
+                <div class="feedback-item">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                        <div>
+                            <div class="feedback-title">{{ feedback.title }}</div>
+                            <span class="feedback-type">{{ feedback.get_feedback_type_display }}</span>
+                        </div>
+                        <span style="color: #999; font-size: 12px;">{{ feedback.created_at|date:"M d, Y • H:i" }}</span>
+                    </div>
+                    <div class="feedback-text">{{ feedback.feedback|linebreaksbr }}</div>
+                    {% if feedback.recommendations %}
+                    <div style="background: #e3f2fd; padding: 10px; border-radius: 4px; margin-top: 8px;">
+                        <strong style="color: #1565c0; font-size: 12px;">Recommendations:</strong>
+                        <p style="margin: 4px 0; color: #0d47a1; font-size: 13px;">{{ feedback.recommendations|linebreaksbr }}</p>
+                    </div>
+                    {% endif %}
+                    <div style="margin-top: 8px; color: #999; font-size: 11px;">
+                        By: {{ feedback.medical_staff.name }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <p>No feedback provided yet</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
