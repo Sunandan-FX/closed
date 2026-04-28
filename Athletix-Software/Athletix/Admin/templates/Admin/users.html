@@ -14,7 +14,8 @@
             <a href="{% url 'admin_app:users' %}" class="btn-logout">All Users</a>
             <a href="{% url 'admin_app:players' %}" class="btn-logout">Players</a>
             <a href="{% url 'admin_app:coaches' %}" class="btn-logout">Coaches</a>
-            <a href="{% url 'home' %}" class="btn-logout">🏠 Home</a>
+            <a href="{% url 'admin_app:medicals' %}" class="btn-logout">Medical Staff</a>
+            <a href="{% url 'home' %}" class="btn-logout">Home</a>
         </div>
     </div>
 
@@ -31,6 +32,7 @@
         {% endif %}
 
         <div class="info-card" style="padding: 20px;">
+            {% if show_pending_coach %}
             <h3 style="text-align:left; margin-bottom: 12px; color: var(--gray-900);">Pending Coach Approvals</h3>
             {% if users %}
             <div style="overflow-x:auto; margin-bottom: 16px;">
@@ -66,6 +68,44 @@
                     </tbody>
                 </table>
             </div>
+            {% endif %}
+            {% endif %}
+
+            {% if show_pending_medical %}
+            <h3 style="text-align:left; margin-bottom: 12px; color: var(--gray-900);">Pending Medical Approvals</h3>
+            {% if users %}
+            <div style="overflow-x:auto; margin-bottom: 16px;">
+                <table style="width:100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: var(--gray-100);">
+                            <th style="text-align:left; padding:10px;">Name</th>
+                            <th style="text-align:left; padding:10px;">Email</th>
+                            <th style="text-align:left; padding:10px;">License Number</th>
+                            <th style="text-align:left; padding:10px;">Specialty</th>
+                            <th style="text-align:left; padding:10px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user_obj in users %}
+                            {% if user_obj.role == 'medical' and not user_obj.is_approved %}
+                            <tr style="border-top:1px solid var(--gray-200);">
+                                <td style="padding:10px;">{{ user_obj.name }}</td>
+                                <td style="padding:10px;">{{ user_obj.email }}</td>
+                                <td style="padding:10px;">{% if user_obj.medical_profile %}{{ user_obj.medical_profile.license_no|default:"Not set" }}{% else %}Not set{% endif %}</td>
+                                <td style="padding:10px;">{% if user_obj.medical_profile %}{{ user_obj.medical_profile.specialty|default:"Not set" }}{% else %}Not set{% endif %}</td>
+                                <td style="padding:10px;">
+                                    <form method="post" action="{% url 'admin_app:approve_medical' user_obj.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary" style="width:auto; padding:6px 10px;">Approve Medical</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
             {% endif %}
 
             <h3 style="text-align:left; margin-bottom: 12px; color: var(--gray-900);">Users</h3>

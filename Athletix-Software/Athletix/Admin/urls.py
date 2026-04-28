@@ -9,9 +9,11 @@ urlpatterns = [
     path('users/', views.users_view, name='users'),
     path('players/', views.players_view, name='players'),
     path('coaches/', views.coaches_view, name='coaches'),
+    path('medicals/', views.medicals_view, name='medicals'),
     path('users/<int:user_id>/edit/', views.edit_user_view, name='edit_user'),
     path('users/<int:user_id>/delete/', views.delete_user_view, name='delete_user'),
     path('users/<int:user_id>/toggle-status/', views.toggle_user_status_view, name='toggle_user_status'),
     path('approve-coach/<int:user_id>/', views.approve_coach_view, name='approve_coach'),
+    path('approve-medical/<int:user_id>/', views.approve_medical_view, name='approve_medical'),
 ]
 

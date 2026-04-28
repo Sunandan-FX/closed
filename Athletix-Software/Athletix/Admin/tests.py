@@ -41,6 +41,14 @@ class AdminAppTests(TestCase):
             is_approved=False,
             is_active=False,
         )
+        self.pending_medical = User.objects.create_user(
+            email='pendingmedical@example.com',
+            name='Pending Medical',
+            password='pass12345',
+            role='medical',
+            is_approved=False,
+            is_active=False,
+        )
 
     def test_dashboard_accessible_for_staff(self):
         self.client.force_login(self.staff_user)
@@ -86,6 +94,27 @@ class AdminAppTests(TestCase):
 
         self.pending_coach.refresh_from_db()
         self.assertFalse(self.pending_coach.is_approved)
+
+    def test_approve_medical_view_approves_pending_medical(self):
+        self.client.force_login(self.staff_user)
+        response = self.client.post(
+            reverse('admin_app:approve_medical', args=[self.pending_medical.id])
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('admin_app:users'))
+
+        self.pending_medical.refresh_from_db()
+        self.assertTrue(self.pending_medical.is_approved)
+        self.assertTrue(self.pending_medical.is_active)
+
+    def test_approve_medical_get_does_not_change_status(self):
+        self.client.force_login(self.staff_user)
+        response = self.client.get(reverse('admin_app:approve_medical', args=[self.pending_medical.id]))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('admin_app:users'))
+
+        self.pending_medical.refresh_from_db()
+        self.assertFalse(self.pending_medical.is_approved)
 
     def test_edit_medical_user_updates_medical_profile_fields(self):
         medical_user = User.objects.create_user(

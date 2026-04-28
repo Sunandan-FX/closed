@@ -7,13 +7,14 @@
     <div class="dashboard-header">
         <div class="user-info">
             <h1>Admin App 🛠️</h1>
-            <p>Manage players, coaches, and coach approvals</p>
+            <p>Manage players, coaches, medical staff, and approvals</p>
         </div>
         <div class="header-actions">
             <a href="{% url 'admin_app:users' %}" class="btn-logout">All Users</a>
             <a href="{% url 'admin_app:players' %}" class="btn-logout">Players</a>
             <a href="{% url 'admin_app:coaches' %}" class="btn-logout">Coaches</a>
-            <a href="{% url 'home' %}" class="btn-logout">🏠 Home</a>
+            <a href="{% url 'admin_app:medicals' %}" class="btn-logout">Medical Staff</a>
+            <a href="{% url 'home' %}" class="btn-logout">Home</a>
         </div>
     </div>
 
@@ -45,6 +46,16 @@
                 <h3>Total Coaches</h3>
                 <p>{{ coaches|length }}</p>
             </div>
+            <div class="info-card">
+                <div class="card-icon">🩺</div>
+                <h3>Total Medical Staff</h3>
+                <p>{{ medicals|length }}</p>
+            </div>
+            <div class="info-card">
+                <div class="card-icon">📝</div>
+                <h3>Pending Medical Approvals</h3>
+                <p>{{ pending_medicals|length }}</p>
+            </div>
         </div>
 
         <div class="info-card" style="padding: 25px;">
@@ -72,6 +83,43 @@
                             <td>{% if coach.coach_profile %}{{ coach.coach_profile.experience_years }} years{% else %}0 years{% endif %}</td>
                             <td>
                                 <form method="post" action="{% url 'admin_app:approve_coach' coach.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary" style="width:auto; padding:8px 14px;">Approve</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p style="text-align:left; color: var(--gray-600);">No pending approvals.</p>
+            {% endif %}
+        </div>
+
+        <div class="info-card" style="padding: 25px; margin-top: 20px;">
+            <h3 style="text-align: left; margin-bottom: 16px; color: var(--gray-900);">Pending Medical Staff Requests</h3>
+            {% if pending_medicals %}
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="text-align:left;">Name</th>
+                            <th style="text-align:left;">Email</th>
+                            <th style="text-align:left;">License Number</th>
+                            <th style="text-align:left;">Specialty</th>
+                            <th style="text-align:left;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for medical in pending_medicals %}
+                        <tr>
+                            <td>{{ medical.name }}</td>
+                            <td>{{ medical.email }}</td>
+                            <td>{% if medical.medical_profile %}{{ medical.medical_profile.license_no|default:"Not set" }}{% else %}Not set{% endif %}</td>
+                            <td>{% if medical.medical_profile %}{{ medical.medical_profile.specialty|default:"Not set" }}{% else %}Not set{% endif %}</td>
+                            <td>
+                                <form method="post" action="{% url 'admin_app:approve_medical' medical.id %}">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-primary" style="width:auto; padding:8px 14px;">Approve</button>
                                 </form>

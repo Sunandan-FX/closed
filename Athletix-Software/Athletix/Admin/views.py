@@ -19,13 +19,17 @@ def admin_app_required(view_func):
 @admin_app_required
 def dashboard_view(request):
     pending_coaches = User.objects.filter(role='coach', is_approved=False).select_related('coach_profile')
+    pending_medicals = User.objects.filter(role='medical', is_approved=False).select_related('medical_profile')
     players = User.objects.filter(role='athlete').order_by('-date_joined')
     coaches = User.objects.filter(role='coach').order_by('-date_joined')
+    medicals = User.objects.filter(role='medical').order_by('-date_joined')
 
     context = {
         'pending_coaches': pending_coaches,
+        'pending_medicals': pending_medicals,
         'players': players,
         'coaches': coaches,
+        'medicals': medicals,
     }
     return render(request, 'Admin/dashboard.html', context)
 
@@ -33,10 +37,12 @@ def dashboard_view(request):
 @login_required
 @admin_app_required
 def users_view(request):
-    users = User.objects.select_related('athlete_profile', 'coach_profile').order_by('-date_joined')
+    users = User.objects.select_related('athlete_profile', 'coach_profile', 'medical_profile').order_by('-date_joined')
     context = {
         'title': 'All Users',
         'users': users,
+        'show_pending_coach': True,
+        'show_pending_medical': True,
     }
     return render(request, 'Admin/users.html', context)
 
@@ -48,6 +54,8 @@ def players_view(request):
     context = {
         'title': 'Players',
         'users': users,
+        'show_pending_coach': False,
+        'show_pending_medical': False,
     }
     return render(request, 'Admin/users.html', context)
 
@@ -59,6 +67,21 @@ def coaches_view(request):
     context = {
         'title': 'Coaches',
         'users': users,
+        'show_pending_coach': True,
+        'show_pending_medical': False,
+    }
+    return render(request, 'Admin/users.html', context)
+
+
+@login_required
+@admin_app_required
+def medicals_view(request):
+    users = User.objects.filter(role='medical').select_related('medical_profile').order_by('-date_joined')
+    context = {
+        'title': 'Medical Staff',
+        'users': users,
+        'show_pending_coach': False,
+        'show_pending_medical': True,
     }
     return render(request, 'Admin/users.html', context)
 
@@ -159,4 +182,19 @@ def approve_coach_view(request, user_id):
     coach_user.save(update_fields=['is_approved', 'is_active'])
 
     messages.success(request, f'Coach {coach_user.name} approved successfully.')
+    return redirect('admin_app:users')
+
+
+@login_required
+@admin_app_required
+def approve_medical_view(request, user_id):
+    if request.method != 'POST':
+        return redirect('admin_app:users')
+
+    medical_user = get_object_or_404(User, id=user_id, role='medical')
+    medical_user.is_approved = True
+    medical_user.is_active = True
+    medical_user.save(update_fields=['is_approved', 'is_active'])
+
+    messages.success(request, f'Medical staff {medical_user.name} approved successfully.')
     return redirect('admin_app:users')
