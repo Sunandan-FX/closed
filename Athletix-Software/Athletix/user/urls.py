@@ -10,5 +10,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('profile/', views.profile_view, name='profile'),
     path('profile/edit/', views.profile_edit_view, name='profile_edit'),
+    path('profiles/search/', views.profile_search_view, name='profile_search'),
+    path('profiles/<int:user_id>/', views.public_profile_view, name='public_profile'),
 ]
 

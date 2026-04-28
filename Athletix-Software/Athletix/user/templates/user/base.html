@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Athletix{% endblock %}</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
         * {
             margin: 0;
             padding: 0;
@@ -12,46 +15,49 @@
         }
 
         :root {
-            /* Professional Athletic Color Palette */
-            --primary: #1B3A5C;
-            --primary-light: #2A4F77;
-            --primary-dark: #0F2A44;
-            --secondary: #00A896;
-            --secondary-light: #02C39A;
-            --secondary-dark: #028A74;
-            --accent: #F0A202;
-            --accent-light: #F4B533;
-            --accent-dark: #D68B00;
-            --success: #2E9336;
-            --danger: #D64933;
-            --warning: #F18F01;
-            --dark: #1E2A3A;
-            --gray-900: #2C3E50;
-            --gray-700: #465A6E;
-            --gray-600: #6B7F8F;
-            --gray-400: #A8B9C4;
-            --gray-300: #CBD5E1;
-            --gray-200: #E2E8F0;
-            --gray-100: #F1F5F9;
+            --primary: #123a5a;
+            --primary-light: #1b567f;
+            --primary-dark: #0b2740;
+            --secondary: #178f88;
+            --secondary-light: #22a39b;
+            --secondary-dark: #0f736d;
+            --accent: #d98d23;
+            --accent-light: #e6a13a;
+            --accent-dark: #b8741a;
+            --success: #18885f;
+            --danger: #cf4c3c;
+            --warning: #d9871f;
+            --dark: #182536;
+            --gray-900: #1f2e42;
+            --gray-700: #3b4f67;
+            --gray-600: #5a6f86;
+            --gray-500: #7b8ea3;
+            --gray-400: #9bb0c4;
+            --gray-300: #cad7e4;
+            --gray-200: #dfe8f1;
+            --gray-100: #f3f7fb;
             --white: #FFFFFF;
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
-            --radius-sm: 6px;
-            --radius: 10px;
-            --radius-lg: 16px;
+            --shadow-sm: 0 6px 16px rgba(18, 58, 90, 0.06);
+            --shadow-md: 0 12px 28px rgba(16, 45, 71, 0.12);
+            --shadow-lg: 0 24px 50px rgba(10, 33, 53, 0.18);
+            --radius-sm: 8px;
+            --radius: 14px;
+            --radius-lg: 22px;
             --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Poppins', Roboto, 'Helvetica Neue', sans-serif;
-            background: linear-gradient(125deg, #E8F0F8 0%, #D9E6F2 100%);
+            font-family: 'Manrope', 'Plus Jakarta Sans', 'Trebuchet MS', sans-serif;
+            background:
+                radial-gradient(circle at 10% 15%, rgba(35, 98, 138, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 90% 12%, rgba(23, 143, 136, 0.12) 0%, transparent 42%),
+                linear-gradient(140deg, #edf4fb 0%, #e6f0f8 50%, #e2edf6 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-            line-height: 1.5;
+            padding: 24px;
+            line-height: 1.55;
             color: var(--gray-900);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
@@ -61,11 +67,13 @@
         .auth-container {
             width: 100%;
             max-width: 440px;
-            background: var(--white);
+            background: rgba(255, 255, 255, 0.93);
+            backdrop-filter: blur(8px);
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-lg);
             overflow: hidden;
             animation: slideUp 0.5s ease;
+            border: 1px solid rgba(255, 255, 255, 0.7);
         }
 
         @keyframes slideUp {
@@ -74,7 +82,7 @@
         }
 
         .auth-header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            background: linear-gradient(135deg, #113958 0%, #0f2f4c 55%, #195678 100%);
             padding: 40px 32px;
             text-align: center;
             color: var(--white);
@@ -99,16 +107,35 @@
         }
 
         .auth-header .logo {
-            font-size: 32px;
+            font-family: 'Plus Jakarta Sans', 'Manrope', sans-serif;
+            font-size: 30px;
             font-weight: 800;
             letter-spacing: -0.5px;
             margin-bottom: 8px;
             position: relative;
             z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            text-align: left;
         }
 
-        .auth-header .logo span { 
-            background: linear-gradient(135deg, #FFD166, #F4A261);
+        .auth-header .logo img {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: rgba(255, 255, 255, 0.14);
+            border: 2px solid rgba(255, 255, 255, 0.22);
+            box-shadow: 0 10px 20px rgba(5, 17, 30, 0.2);
+            flex-shrink: 0;
+        }
+
+        .auth-header .logo span {
+            /* Blue gradient for stronger professional branding */
+            background: linear-gradient(135deg, #3B82F6 0%, #06B6D4 100%);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -124,6 +151,12 @@
             z-index: 1;
         }
 
+        .auth-brand-text {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0;
+        }
+
         .auth-body {
             padding: 36px 32px 32px;
         }
@@ -135,6 +168,7 @@
             text-align: center;
             font-weight: 700;
             letter-spacing: -0.3px;
+            font-family: 'Plus Jakarta Sans', 'Manrope', sans-serif;
         }
 
         .form-group {
@@ -152,23 +186,23 @@
 
         .form-input {
             width: 100%;
-            padding: 12px 16px;
-            border: 2px solid var(--gray-300);
+            padding: 13px 16px;
+            border: 1px solid #ccd9e6;
             border-radius: var(--radius);
             font-size: 14px;
             color: var(--gray-900);
             transition: var(--transition);
             outline: none;
-            background: var(--white);
+            background: rgba(255, 255, 255, 0.95);
         }
 
         .form-input:hover {
-            border-color: var(--gray-400);
+            border-color: #b9cde1;
         }
 
         .form-input:focus {
-            border-color: var(--secondary);
-            box-shadow: 0 0 0 3px rgba(0, 168, 150, 0.1);
+            border-color: #4f8db8;
+            box-shadow: 0 0 0 3px rgba(79, 141, 184, 0.16);
         }
 
         .form-input::placeholder { color: var(--gray-400); }
@@ -185,7 +219,7 @@
 
         .btn {
             width: 100%;
-            padding: 14px 20px;
+            padding: 13px 20px;
             border: none;
             border-radius: var(--radius);
             font-size: 15px;
@@ -212,15 +246,15 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+            background: linear-gradient(135deg, #1a8f8a 0%, #12766f 100%);
             color: var(--white);
-            box-shadow: 0 2px 8px rgba(0, 168, 150, 0.3);
+            box-shadow: 0 10px 22px rgba(18, 118, 111, 0.26);
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 168, 150, 0.4);
-            background: linear-gradient(135deg, var(--secondary-light) 0%, var(--secondary) 100%);
+            box-shadow: 0 14px 28px rgba(18, 118, 111, 0.34);
+            background: linear-gradient(135deg, #22a39b 0%, #178f88 100%);
         }
 
         .btn-primary:active {
@@ -319,17 +353,19 @@
 
         .dashboard-container {
             width: 100%;
-            max-width: 1200px;
-            background: var(--white);
+            max-width: 1280px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-lg);
             overflow: hidden;
             animation: slideUp 0.5s ease;
+            border: 1px solid rgba(255, 255, 255, 0.72);
         }
 
         .dashboard-header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            padding: 28px 32px;
+            background: linear-gradient(135deg, #0f3553 0%, #10314c 52%, #1a5b7e 100%);
+            padding: 30px 34px;
             color: var(--white);
             display: flex;
             justify-content: space-between;
@@ -344,15 +380,16 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--secondary), var(--accent), var(--secondary));
+            height: 2px;
+            background: linear-gradient(90deg, #2bb1a7, #e2a03a, #2bb1a7);
         }
 
         .dashboard-header .user-info h1 {
-            font-size: 26px;
+            font-family: 'Plus Jakarta Sans', 'Manrope', sans-serif;
+            font-size: 28px;
             margin-bottom: 6px;
-            font-weight: 700;
-            letter-spacing: -0.3px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
         }
 
         .dashboard-header .user-info p {
@@ -364,8 +401,8 @@
         }
 
         .dashboard-body { 
-            padding: 32px;
-            background: var(--gray-100);
+            padding: 34px;
+            background: linear-gradient(180deg, #f2f7fc 0%, #edf4fa 100%);
         }
 
         .header-actions {
@@ -376,18 +413,19 @@
 
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 18px;
             margin-top: 24px;
         }
 
         .info-card {
-            background: var(--white);
-            padding: 28px 24px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(4px);
+            padding: 24px 22px;
             border-radius: var(--radius);
             text-align: center;
             transition: var(--transition);
-            border: 1px solid var(--gray-200);
+            border: 1px solid #dbe7f3;
             box-shadow: var(--shadow-sm);
         }
 
@@ -403,10 +441,10 @@
         }
 
         .info-card h3 {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--gray-600);
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 1px;
             margin-bottom: 8px;
             font-weight: 700;
         }
@@ -432,7 +470,7 @@
         .role-medical { background: linear-gradient(135deg, #FCE4EC, #F8BBD0); color: #C62828; }
 
         .btn-logout {
-            padding: 10px 24px;
+            padding: 10px 18px;
             border: 2px solid rgba(255,255,255,0.7);
             background: rgba(255,255,255,0.1);
             color: var(--white);
@@ -475,9 +513,10 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            background: var(--white);
+            background: rgba(255, 255, 255, 0.95);
             border-radius: var(--radius);
             overflow: hidden;
+            border: 1px solid #d8e4f0;
         }
 
         th,
@@ -487,8 +526,8 @@
         }
 
         th {
-            background: var(--gray-100);
-            color: var(--gray-700);
+            background: #eef5fc;
+            color: #39516a;
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.4px;
@@ -509,6 +548,24 @@
             }
             .dashboard-body { padding: 24px; }
             .info-card { padding: 20px 16px; }
+        }
+
+        @media (max-width: 860px) {
+            body {
+                padding: 12px;
+            }
+            .dashboard-header {
+                padding: 22px 18px;
+            }
+            .dashboard-body {
+                padding: 20px 16px;
+            }
+            .header-actions {
+                justify-content: center;
+            }
+            .dashboard-header .user-info h1 {
+                font-size: 24px;
+            }
         }
     </style>
 </head>

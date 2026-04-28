@@ -573,18 +573,15 @@ class DashboardViewTests(TestCase):
         self.assertRedirects(response, f"{reverse('login')}?next={self.dashboard_url}")
 
     # Test 47: Dashboard accessible when logged in
-    def test_dashboard_accessible_when_logged_in(self):
-        """Test dashboard is accessible when logged in"""
-        self.client.force_login(self.user)
-        response = self.client.get(self.dashboard_url)
-        self.assertEqual(response.status_code, 200)
+        def test_dashboard_accessible_when_logged_in(self):
+          self.client.force_login(User.objects.create_user(username='testuser', password='testpassword'))
+          response = self.client.get(reverse('dashboard'))
+          self.assertEqual(response.status_code, 200)
 
-    # Test 48: Dashboard uses correct template
     def test_dashboard_uses_correct_template(self):
-        """Test dashboard uses correct template"""
-        self.client.force_login(self.user)
-        response = self.client.get(self.dashboard_url)
+        response = self.client.get(reverse('dashboard'))
         self.assertTemplateUsed(response, 'user/dashboard.html')
+
 
     # Test 48b: Athlete redirects to player dashboard
     def test_athlete_redirects_to_player_dashboard(self):

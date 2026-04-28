@@ -1,7 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Q
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
@@ -33,6 +34,8 @@ def signup_view(request):
 
             if user.role == 'coach':
                 messages.success(request, 'Coach account created. Please wait for admin approval before logging in.')
+            elif user.role == 'medical':
+                messages.success(request, 'Medical staff account created. Please wait for admin approval before logging in.')
             else:
                 messages.success(request, 'Account created successfully! Please log in.')
             return redirect('login')
@@ -61,6 +64,9 @@ def login_view(request):
                     if user.is_active:
                         if user.role == 'coach' and not user.is_approved:
                             messages.error(request, 'Your coach account is pending admin approval.')
+                            return render(request, 'user/login.html', {'form': form})
+                        if user.role == 'medical' and not user.is_approved:
+                            messages.error(request, 'Your medical staff account is pending admin approval.')
                             return render(request, 'user/login.html', {'form': form})
                         login(request, user)
                         messages.success(request, f'Welcome back, {user.first_name}!')
@@ -169,8 +175,17 @@ def profile_view(request):
             context['profile'] = None
         # Get athlete-specific data
         from player.models import AthleteSport, AthleteCoach
+        from medical_staff.forms import AthleteSelfHealthRecordForm
+        from medical_staff.models import AthleteHealthRecord, MedicalFeedback
         context['selected_sports'] = AthleteSport.objects.filter(athlete=user).select_related('sport')
         context['active_coaches'] = AthleteCoach.objects.filter(athlete=user, is_active=True).select_related('coach', 'sport')
+        context['athlete_health_form'] = AthleteSelfHealthRecordForm()
+        context['latest_self_health_records'] = AthleteHealthRecord.objects.filter(
+            athlete=user
+        ).select_related('medical_staff')[:8]
+        context['medical_feedback_for_athlete'] = MedicalFeedback.objects.filter(
+            athlete=user
+        ).select_related('medical_staff')[:8]
     elif user.role == 'coach':
         try:
             context['profile'] = user.coach_profile
@@ -220,7 +235,7 @@ def profile_edit_view(request):
         try:
             role_profile = user.medical_profile
         except MedicalProfile.DoesNotExist:
-            role_profile = MedicalProfile.objects.create(user=user)
+            role_profile, _ = MedicalProfile.objects.get_or_create(user=user)
 
     if request.method == 'POST':
         form = ProfileEditForm(request.POST, request.FILES, instance=user)
@@ -263,3 +278,90 @@ def profile_edit_view(request):
         from player.models import Sport
         context['sports'] = Sport.objects.all()
     return render(request, 'user/profile_edit.html', context)
+
+
+@login_required
+def profile_search_view(request):
+    """Search all users and open full public profile details."""
+    query = request.GET.get('q', '').strip()
+    users_qs = User.objects.filter(is_active=True).order_by('name')
+
+    if query:
+        users_qs = users_qs.filter(
+            Q(name__icontains=query) |
+            Q(email__icontains=query) |
+            Q(role__icontains=query)
+        )
+
+    users = list(users_qs)
+    medical_user_ids = [user.id for user in users if user.role == 'medical']
+    medical_profiles = {
+        profile.user_id: profile
+        for profile in MedicalProfile.objects.filter(user_id__in=medical_user_ids)
+    }
+
+    for user in users:
+        if user.role == 'medical':
+            specialty = (medical_profiles.get(user.id).specialty if medical_profiles.get(user.id) else '') or 'Specialty Not Set'
+            user.profile_role_label = f'Doctor - {specialty}'
+        else:
+            user.profile_role_label = user.get_role_display()
+
+    context = {
+        'search_query': query,
+        'results': users,
+        'result_count': len(users),
+    }
+    return render(request, 'user/profile_search.html', context)
+
+
+@login_required
+def public_profile_view(request, user_id):
+    """Show full profile details for a selected user."""
+    profile_user = get_object_or_404(User, id=user_id, is_active=True)
+
+    context = {
+        'profile_user': profile_user,
+        'profile_role_label': profile_user.get_role_display(),
+    }
+
+    if profile_user.role == 'athlete':
+        profile = AthleteProfile.objects.filter(user=profile_user).first()
+        from player.models import AthleteSport, AthleteCoach, DailyRoutine
+
+        selected_sports = AthleteSport.objects.filter(athlete=profile_user).select_related('sport')
+        active_coaches = AthleteCoach.objects.filter(athlete=profile_user, is_active=True).select_related('coach', 'sport')
+        routines = DailyRoutine.objects.filter(athlete=profile_user)
+
+        context.update({
+            'role_profile': profile,
+            'selected_sports': selected_sports,
+            'active_coaches': active_coaches,
+            'routine_count': routines.count(),
+            'completed_routine_count': routines.filter(coach_approved_completion=True).count(),
+        })
+
+    elif profile_user.role == 'coach':
+        profile = CoachProfile.objects.filter(user=profile_user).first()
+        from player.models import AthleteCoach, DailyRoutine
+
+        my_athletes = AthleteCoach.objects.filter(coach=profile_user, is_active=True).select_related('athlete', 'sport')
+        context.update({
+            'role_profile': profile,
+            'my_athletes': my_athletes,
+            'athlete_count': my_athletes.count(),
+            'routine_count': DailyRoutine.objects.filter(coach=profile_user).count(),
+        })
+
+    elif profile_user.role == 'medical':
+        profile = MedicalProfile.objects.filter(user=profile_user).first()
+        from medical_staff.models import AthleteHealthRecord, MedicalFeedback
+
+        context.update({
+            'role_profile': profile,
+            'profile_role_label': f"Doctor - {(profile.specialty if profile and profile.specialty else 'Specialty Not Set')}",
+            'health_record_count': AthleteHealthRecord.objects.filter(medical_staff=profile_user).count(),
+            'feedback_count': MedicalFeedback.objects.filter(medical_staff=profile_user).count(),
+        })
+
+    return render(request, 'user/public_profile.html', context)

@@ -115,7 +115,7 @@ class CoachProfile(models.Model):
 
 class MedicalProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='medical_profile')
-    license_no = models.CharField(max_length=100, unique=True, blank=True)
+    license_no = models.CharField(max_length=100, unique=True, blank=True, null=True)
     specialty = models.CharField(max_length=200, blank=True)
 
     def __str__(self):

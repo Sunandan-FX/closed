@@ -1,0 +1,258 @@
+{% extends 'user/base.html' %}
+
+{% block title %}{{ profile_user.name }} - Full Profile{% endblock %}
+
+{% block content %}
+<style>
+    .profile-shell {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .profile-hero {
+        background: linear-gradient(135deg, #113958 0%, #0f2f4c 55%, #195678 100%);
+        color: #fff;
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        margin-bottom: 18px;
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+    .profile-hero h1 {
+        margin: 0;
+        font-size: 28px;
+        font-family: 'Plus Jakarta Sans', 'Manrope', sans-serif;
+    }
+    .profile-hero p {
+        margin: 6px 0 0;
+        opacity: 0.92;
+        font-size: 14px;
+    }
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        border: 1px solid rgba(255,255,255,0.45);
+        background: rgba(255,255,255,0.15);
+    }
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    .card {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid #dbe7f3;
+        border-radius: 14px;
+        box-shadow: var(--shadow-sm);
+        padding: 18px;
+    }
+    .card h3 {
+        margin: 0 0 12px;
+        color: #173e60;
+        font-size: 18px;
+        font-family: 'Plus Jakarta Sans', 'Manrope', sans-serif;
+    }
+    .kv {
+        display: grid;
+        gap: 8px;
+    }
+    .kv-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid #edf3f9;
+        padding-bottom: 6px;
+    }
+    .kv-label {
+        color: #5f748a;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        font-weight: 700;
+    }
+    .kv-value {
+        color: #1d3e5c;
+        font-weight: 600;
+        text-align: right;
+        font-size: 14px;
+    }
+    .pill-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        background: #eef5fc;
+        color: #23507a;
+    }
+    .list-box {
+        display: grid;
+        gap: 8px;
+    }
+    .list-item {
+        border: 1px solid #e2ecf6;
+        border-radius: 10px;
+        padding: 10px;
+        background: #f9fcff;
+        color: #2b4d69;
+        font-size: 13px;
+    }
+    @media (max-width: 900px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+        .profile-hero {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="user-info">
+            <h1>Full Profile</h1>
+            <p>Complete profile details visible to all authenticated users.</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'profile_search' %}" class="btn-logout">Search Profiles</a>
+            <a href="{% url 'dashboard' %}" class="btn-logout">Dashboard</a>
+            <a href="{% url 'home' %}" class="btn-logout">Home</a>
+        </div>
+    </div>
+
+    <div class="dashboard-body">
+        <div class="profile-shell">
+            <div class="profile-hero">
+                <div>
+                    <h1>{{ profile_user.name }}</h1>
+                    <p>{{ profile_user.email }}</p>
+                </div>
+                <span class="role-badge">{{ profile_role_label }}</span>
+            </div>
+
+            <div class="content-grid">
+                <div class="card">
+                    <h3>General Information</h3>
+                    <div class="kv">
+                        <div class="kv-row"><span class="kv-label">Phone</span><span class="kv-value">{{ profile_user.phone|default:'Not provided' }}</span></div>
+                        <div class="kv-row"><span class="kv-label">Address</span><span class="kv-value">{{ profile_user.address|default:'Not provided' }}</span></div>
+                        <div class="kv-row"><span class="kv-label">Blood Group</span><span class="kv-value">{{ profile_user.blood_group|default:'Not provided' }}</span></div>
+                        <div class="kv-row"><span class="kv-label">Date of Birth</span><span class="kv-value">{{ profile_user.date_of_birth|default:'Not provided' }}</span></div>
+                        <div class="kv-row"><span class="kv-label">Joined</span><span class="kv-value">{{ profile_user.date_joined|date:'M d, Y' }}</span></div>
+                    </div>
+                </div>
+
+                {% if profile_user.role == 'athlete' %}
+                <div class="card">
+                    <h3>Athlete Profile</h3>
+                    {% if role_profile %}
+                    <div class="kv">
+                        <div class="kv-row"><span class="kv-label">Sport Type</span><span class="kv-value">{{ role_profile.sport_type|default:'Not set' }}</span></div>
+                        <div class="kv-row"><span class="kv-label">Age</span><span class="kv-value">{{ role_profile.age|default:'Not set' }}</span></div>
+                        <div class="kv-row"><span class="kv-label">Height</span><span class="kv-value">{{ role_profile.height|default:'Not set' }}</span></div>
+                        <div class="kv-row"><span class="kv-label">Weight</span><span class="kv-value">{{ role_profile.weight|default:'Not set' }}</span></div>
+                        <div class="kv-row"><span class="kv-label">Fitness</span><span class="kv-value">{{ role_profile.get_fitness_level_display|default:'Not set' }}</span></div>
+                        <div class="kv-row"><span class="kv-label">Routines</span><span class="kv-value">{{ routine_count }}</span></div>
+                        <div class="kv-row"><span class="kv-label">Completed Routines</span><span class="kv-value">{{ completed_routine_count }}</span></div>
+                    </div>
+                    {% else %}
+                    <p style="margin: 0; color: #5f748a;">No athlete profile details available.</p>
+                    {% endif %}
+                </div>
+
+                <div class="card">
+                    <h3>Selected Sports</h3>
+                    {% if selected_sports %}
+                    <div class="pill-list">
+                        {% for entry in selected_sports %}
+                        <span class="pill">{{ entry.sport.name }} ({{ entry.get_skill_level_display }})</span>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p style="margin: 0; color: #5f748a;">No selected sports found.</p>
+                    {% endif %}
+                </div>
+
+                <div class="card">
+                    <h3>Active Coaches</h3>
+                    {% if active_coaches %}
+                    <div class="list-box">
+                        {% for relation in active_coaches %}
+                        <div class="list-item">{{ relation.coach.name }} • {{ relation.sport.name }}</div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p style="margin: 0; color: #5f748a;">No active coach relationships.</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if profile_user.role == 'coach' %}
+                <div class="card">
+                    <h3>Coach Profile</h3>
+                    {% if role_profile %}
+                    <div class="kv">
+                        <div class="kv-row"><span class="kv-label">Primary Sport</span><span class="kv-value">{{ role_profile.sport.name|default:'Not set' }}</span></div>
+                        <div class="kv-row"><span class="kv-label">Specialization</span><span class="kv-value">{{ role_profile.specialization|default:'Not set' }}</span></div>
+                        <div class="kv-row"><span class="kv-label">Experience</span><span class="kv-value">{{ role_profile.experience_years }} years</span></div>
+                        <div class="kv-row"><span class="kv-label">Certification</span><span class="kv-value">{{ role_profile.certification|default:'Not set' }}</span></div>
+                        <div class="kv-row"><span class="kv-label">Athletes</span><span class="kv-value">{{ athlete_count }}</span></div>
+                        <div class="kv-row"><span class="kv-label">Routines</span><span class="kv-value">{{ routine_count }}</span></div>
+                    </div>
+                    {% if role_profile.bio %}
+                    <div style="margin-top: 10px; color: #2b4d69; font-size: 13px;">{{ role_profile.bio }}</div>
+                    {% endif %}
+                    {% else %}
+                    <p style="margin: 0; color: #5f748a;">No coach profile details available.</p>
+                    {% endif %}
+                </div>
+
+                <div class="card">
+                    <h3>Current Athletes</h3>
+                    {% if my_athletes %}
+                    <div class="list-box">
+                        {% for relation in my_athletes %}
+                        <div class="list-item">{{ relation.athlete.name }} • {{ relation.sport.name }}</div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p style="margin: 0; color: #5f748a;">No active athletes listed.</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if profile_user.role == 'medical' %}
+                <div class="card">
+                    <h3>Medical Profile</h3>
+                    {% if role_profile %}
+                    <div class="kv">
+                        <div class="kv-row"><span class="kv-label">Specialty</span><span class="kv-value">{{ role_profile.specialty|default:'Not set' }}</span></div>
+                        <div class="kv-row"><span class="kv-label">License Number</span><span class="kv-value">{{ role_profile.license_no|default:'Not set' }}</span></div>
+                        <div class="kv-row"><span class="kv-label">Health Records Logged</span><span class="kv-value">{{ health_record_count }}</span></div>
+                        <div class="kv-row"><span class="kv-label">Feedback Entries</span><span class="kv-value">{{ feedback_count }}</span></div>
+                    </div>
+                    {% else %}
+                    <p style="margin: 0; color: #5f748a;">No medical profile details available.</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

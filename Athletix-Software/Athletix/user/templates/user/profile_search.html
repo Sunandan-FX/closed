@@ -1,0 +1,204 @@
+{% extends 'user/base.html' %}
+
+{% block title %}Search Profiles - Athletix{% endblock %}
+
+{% block content %}
+<style>
+    .search-shell {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    .search-hero {
+        background: linear-gradient(135deg, #123a5a 0%, #1b567f 55%, #178f88 100%);
+        color: #fff;
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        margin-bottom: 18px;
+        box-shadow: 0 18px 32px rgba(16, 45, 71, 0.18);
+    }
+    .search-hero h1 {
+        margin: 0;
+        font-size: 28px;
+        font-family: 'Plus Jakarta Sans', 'Manrope', sans-serif;
+    }
+    .search-hero p {
+        margin: 6px 0 0;
+        opacity: 0.92;
+        font-size: 14px;
+    }
+    .search-form-card {
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid #d8e7f5;
+        border-radius: var(--radius);
+        padding: 18px;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 16px;
+    }
+    .search-form {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+    }
+    .search-input {
+        width: 100%;
+        border: 1px solid #c8ddee;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 14px;
+        background: #fbfdff;
+    }
+    .search-input:focus {
+        outline: none;
+        border-color: #4f8db8;
+        box-shadow: 0 0 0 3px rgba(79, 141, 184, 0.16);
+    }
+    .search-btn {
+        border: none;
+        border-radius: 12px;
+        padding: 12px 18px;
+        font-weight: 700;
+        color: #fff;
+        background: linear-gradient(135deg, #1a8f8a 0%, #12766f 100%);
+        cursor: pointer;
+    }
+    .results-meta {
+        color: var(--gray-600);
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+    .results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 14px;
+    }
+    .user-card {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid #dbe7f3;
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+    }
+    .user-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-md);
+        border-color: #b9cfe3;
+    }
+    .user-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+    .avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #1b567f, #178f88);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+    }
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .role-athlete {
+        color: #2f6f38;
+        background: #e8f5e9;
+    }
+    .role-coach {
+        color: #1b4f7b;
+        background: #e3f2fd;
+    }
+    .role-medical {
+        color: #7b1b50;
+        background: #fde7f2;
+    }
+    .view-btn {
+        margin-top: 10px;
+        display: inline-block;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        color: #1a5e90;
+    }
+    .empty-box {
+        background: #f6fbff;
+        border: 1px dashed #c9dff0;
+        border-radius: 14px;
+        padding: 40px 20px;
+        text-align: center;
+        color: #5c7388;
+    }
+    @media (max-width: 768px) {
+        .search-form {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="user-info">
+            <h1>Profile Search</h1>
+            <p>Find any user and open their full profile details.</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'home' %}" class="btn-logout">Home</a>
+            <a href="{% url 'dashboard' %}" class="btn-logout">Dashboard</a>
+            <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="dashboard-body">
+        <div class="search-shell">
+            <div class="search-hero">
+                <h1>User Directory</h1>
+                <p>Search by name, email, or role and open full profiles for athletes, coaches, and medical staff.</p>
+            </div>
+
+            <div class="search-form-card">
+                <form method="get" class="search-form">
+                    <input type="text" name="q" class="search-input" value="{{ search_query }}" placeholder="Search users by name, email, or role">
+                    <button type="submit" class="search-btn">Search</button>
+                </form>
+            </div>
+
+            <div class="results-meta">{{ result_count }} profile{{ result_count|pluralize }} found</div>
+
+            {% if results %}
+            <div class="results-grid">
+                {% for item in results %}
+                <div class="user-card">
+                    <div class="user-head">
+                        <div class="avatar">{{ item.first_name|slice:":1"|upper }}{{ item.last_name|slice:":1"|upper }}</div>
+                        <div>
+                            <h3 style="margin: 0; color: #193d5b; font-size: 16px;">{{ item.name }}</h3>
+                            <p style="margin: 2px 0 0; font-size: 12px; color: #5f748a;">{{ item.email }}</p>
+                        </div>
+                    </div>
+                    <span class="role-badge role-{{ item.role }}">{{ item.profile_role_label }}</span>
+                    <a href="{% url 'public_profile' item.id %}" class="view-btn">View Full Profile</a>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-box">
+                <h3 style="margin: 0 0 8px;">No users found</h3>
+                <p style="margin: 0;">Try a broader search term.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

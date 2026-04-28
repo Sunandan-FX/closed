@@ -57,7 +57,7 @@ class SignUpForm(forms.ModelForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data['password'])
-        if user.role == 'coach':
+        if user.role in ['coach', 'medical']:
             user.is_approved = False
         if commit:
             user.save()
