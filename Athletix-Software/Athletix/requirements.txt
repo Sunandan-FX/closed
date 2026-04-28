@@ -3,3 +3,5 @@ Django==6.0.3
 sqlparse==0.5.5
 tzdata==2025.3
 Pillow>=10.0.0
+selenium>=4.15.0
+webdriver-manager>=4.0.0
