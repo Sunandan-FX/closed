@@ -1,0 +1,306 @@
+{% extends 'user/base.html' %}
+
+{% block title %}Start New Chat - Athletix{% endblock %}
+
+{% block content %}
+<style>
+    html, body {
+        height: 100%;
+    }
+    body {
+        align-items: stretch;
+        justify-content: flex-start;
+        padding: 0;
+    }
+    .page-shell {
+        width: 100%;
+        min-height: 100vh;
+        padding: 20px;
+    }
+    .chat-container {
+        width: 100%;
+        max-width: 1320px;
+        margin: 0 auto;
+    }
+    .chat-topbar {
+        background: linear-gradient(120deg, #0f3555 0%, #14507b 52%, #1a7b8f 100%);
+        color: #fff;
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        margin-bottom: 18px;
+        box-shadow: 0 18px 36px rgba(15, 53, 85, 0.24);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+    }
+    .topbar-title h1 {
+        margin: 0;
+        font-size: clamp(24px, 3vw, 34px);
+    }
+    .topbar-title p {
+        margin: 4px 0 0;
+        opacity: 0.92;
+        font-size: 14px;
+    }
+    .topbar-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .topbar-btn {
+        border: 1px solid rgba(255, 255, 255, 0.34);
+        background: rgba(255, 255, 255, 0.16);
+        color: #fff;
+        padding: 10px 16px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 13px;
+        letter-spacing: 0.2px;
+        transition: all 0.2s ease;
+    }
+    .topbar-btn:hover {
+        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.24);
+        border-color: rgba(255, 255, 255, 0.55);
+    }
+    .chat-header {
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid #d8e7f5;
+        border-radius: var(--radius);
+        padding: 14px 18px;
+        margin-bottom: 16px;
+    }
+    .chat-header h2 {
+        margin: 0;
+        color: #0d3a5f;
+        font-size: 20px;
+    }
+    .chat-header p {
+        margin: 3px 0 0;
+        color: #5d7389;
+        font-size: 13px;
+    }
+    .form-card {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid #d8e7f5;
+        border-radius: var(--radius);
+        padding: 24px;
+        box-shadow: 0 12px 26px rgba(23, 52, 80, 0.11);
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #0e3a5d;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    .users-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 14px;
+    }
+    .user-option {
+        padding: 18px;
+        border: 1px solid #d8e7f5;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: #fff;
+        text-align: left;
+        position: relative;
+        box-shadow: 0 6px 14px rgba(16, 52, 81, 0.06);
+    }
+    .user-option.role-athlete {
+        border-left: 5px solid #1a9d54;
+    }
+    .user-option.role-coach {
+        border-left: 5px solid #277cb6;
+    }
+    .user-option.role-medical {
+        border-left: 5px solid #a73974;
+    }
+    .user-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+    .user-option input[type="radio"]:checked + .user-info {
+        color: #1b6ca8;
+    }
+    .user-option:has(input:checked) {
+        border-color: #1d77af;
+        background: #f1f8ff;
+        box-shadow: 0 12px 22px rgba(18, 93, 138, 0.18);
+    }
+    .user-option:hover {
+        border-color: #7cb6df;
+        transform: translateY(-2px);
+        box-shadow: 0 12px 22px rgba(18, 93, 138, 0.15);
+    }
+    .user-info {
+        padding-top: 0;
+    }
+    .user-name {
+        font-weight: 700;
+        color: #0e3a5d;
+        margin-bottom: 6px;
+        font-size: 16px;
+    }
+    .user-role {
+        font-size: 11px;
+        color: #5d7389;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 0.35px;
+    }
+    .user-role.role-athlete {
+        color: #14532d;
+    }
+    .user-role.role-coach {
+        color: #0f527e;
+    }
+    .user-role.role-medical {
+        color: #7a1f57;
+    }
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+    }
+    .btn-action {
+        flex: 1;
+        padding: 12px 18px;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 14px;
+    }
+    .btn-start {
+        background: linear-gradient(140deg, #1767a0, #155887);
+        color: white;
+    }
+    .btn-start:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 18px rgba(20, 80, 123, 0.26);
+    }
+    .btn-cancel {
+        background: #f1f7fd;
+        color: #0e3a5d;
+        border: 1px solid #dce8f3;
+    }
+    .btn-cancel:hover {
+        background: #e8f0f7;
+        border-color: #1b6ca8;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        background: #f8fbfd;
+        border-radius: 10px;
+        border: 1px dashed #dce8f3;
+    }
+    .empty-state h3 {
+        color: #0e3a5d;
+        margin-bottom: 12px;
+    }
+    @media (max-width: 768px) {
+        .page-shell {
+            padding: 12px;
+        }
+        .chat-topbar {
+            padding: 16px;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .topbar-actions {
+            width: 100%;
+        }
+        .topbar-btn {
+            flex: 1;
+            text-align: center;
+        }
+        .form-card {
+            padding: 14px;
+        }
+        .users-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        .form-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="page-shell">
+<div class="chat-container">
+    <div class="chat-topbar">
+        <div class="topbar-title">
+            <h1>Chat System</h1>
+            <p>Start a new conversation with any available user.</p>
+        </div>
+        <div class="topbar-actions">
+            <a href="{% url 'home' %}" class="topbar-btn">Home</a>
+            <a href="{% url 'chat:conversations_list' %}" class="topbar-btn">Conversations</a>
+            <a href="{% url 'logout' %}" class="topbar-btn">Logout</a>
+        </div>
+    </div>
+
+    <div class="chat-header">
+        <h2>Start New Chat</h2>
+        <p>Select a person to start messaging</p>
+    </div>
+
+    {% if messages %}
+    <div class="messages-container" style="margin-bottom: 20px;">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            <span>{{ message }}</span>
+            <button class="alert-close">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="form-card">
+        {% if available_users %}
+        <form method="post" id="start-chat-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Select a person to chat with:</label>
+                <div class="users-grid">
+                    {% for user_option in available_users %}
+                    <label class="user-option role-{{ user_option.role }}">
+                        <input type="radio" name="recipient_id" value="{{ user_option.id }}" required>
+                        <div class="user-info">
+                            <div class="user-name">{{ user_option.name }}</div>
+                            <div class="user-role role-{{ user_option.role }}">{{ user_option.get_role_display }}</div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-action btn-start">Start Chat</button>
+                <a href="{% url 'chat:conversations_list' %}" class="btn-action btn-cancel" style="text-decoration: none; text-align: center;">Cancel</a>
+            </div>
+        </form>
+        {% else %}
+        <div class="empty-state">
+            <h3>No available users</h3>
+            <p>There are no {{ available_users_role|default:"other users" }} available to chat with right now.</p>
+            <a href="{% url 'chat:conversations_list' %}" class="btn btn-primary" style="margin-top: 16px;">Back to Conversations</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+</div>
+{% endblock %}
