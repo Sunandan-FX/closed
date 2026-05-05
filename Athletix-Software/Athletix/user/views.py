@@ -13,6 +13,8 @@ from .models import User, AthleteProfile, CoachProfile, MedicalProfile
 
 
 def home_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
     return render(request, 'home.html')
 
 
@@ -49,8 +51,7 @@ def signup_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        # Redirect to home page for all users
-        return redirect('home')
+        return redirect('dashboard')
 
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -70,8 +71,9 @@ def login_view(request):
                             return render(request, 'user/login.html', {'form': form})
                         login(request, user)
                         messages.success(request, f'Welcome back, {user.first_name}!')
-                        # Redirect to home page after login
-                        return redirect('home')
+                        if user.is_staff or user.is_superuser:
+                            return redirect('admin_app:dashboard')
+                        return redirect('dashboard')
                     else:
                         messages.error(request, 'Your account has been deactivated.')
                 else:
@@ -146,6 +148,9 @@ def reset_password_view(request, uidb64, token):
 def dashboard_view(request):
     """Redirect to role-specific dashboard or show generic dashboard"""
     user = request.user
+
+    if user.is_staff or user.is_superuser:
+        return redirect('admin_app:dashboard')
     
     # Redirect athletes to player dashboard
     if user.role == 'athlete':

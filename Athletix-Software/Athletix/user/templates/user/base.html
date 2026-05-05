@@ -64,6 +64,13 @@
             text-rendering: optimizeLegibility;
         }
 
+        body.dashboard-page {
+            display: block;
+            align-items: stretch;
+            justify-content: stretch;
+            padding: 0;
+        }
+
         .auth-container {
             width: 100%;
             max-width: 440px;
@@ -156,6 +163,7 @@
             align-items: baseline;
             gap: 0;
         }
+
 
         .auth-body {
             padding: 36px 32px 32px;
@@ -363,6 +371,12 @@
             border: 1px solid rgba(255, 255, 255, 0.72);
         }
 
+        body.dashboard-page .dashboard-container {
+            max-width: none;
+            min-height: 100vh;
+            border-radius: 0;
+        }
+
         .dashboard-header {
             background: linear-gradient(135deg, #0f3553 0%, #10314c 52%, #1a5b7e 100%);
             padding: 30px 34px;
@@ -403,6 +417,10 @@
         .dashboard-body { 
             padding: 34px;
             background: linear-gradient(180deg, #f2f7fc 0%, #edf4fa 100%);
+        }
+
+        body.dashboard-page .dashboard-body {
+            min-height: calc(100vh - 120px);
         }
 
         .header-actions {
@@ -568,8 +586,9 @@
             }
         }
     </style>
+    {% block extra_styles %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
     {% block content %}{% endblock %}
 
     <script>
