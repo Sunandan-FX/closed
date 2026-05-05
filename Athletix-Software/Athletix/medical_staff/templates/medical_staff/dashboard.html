@@ -1,6 +1,7 @@
 {% extends 'user/base.html' %}
 
 {% block title %}Medical Staff - Athletix{% endblock %}
+{% block body_class %}dashboard-page{% endblock %}
 
 {% block content %}
 <style>
@@ -92,9 +93,17 @@
             <p>Review athlete-submitted metrics and provide evidence-based feedback</p>
         </div>
         <div class="header-actions">
-            <a href="{% url 'home' %}" class="btn-logout">Home</a>
-            <a href="{% url 'profile_search' %}" class="btn-logout">Search Profiles</a>
+            <a href="javascript:history.back()" class="btn-logout">Back</a>
             <a href="{% url 'profile' %}" class="btn-logout">My Profile</a>
+            <a href="{% url 'profile_search' %}" class="btn-logout">Search Profiles</a>
+            <a href="{% url 'dashboard' %}" class="btn-logout">Dashboard</a>
+            <a href="{% url 'chat:conversations_list' %}" class="btn-logout">Chat</a>
+            {% if user.role == 'medical' %}
+            <a href="{% url 'medical_staff:dashboard' %}" class="btn-logout">Medical Dashboard</a>
+            {% endif %}
+            {% if user.is_staff or user.is_superuser %}
+            <a href="{% url 'admin_app:dashboard' %}" class="btn-logout">Admin App</a>
+            {% endif %}
             <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
         </div>
     </div>

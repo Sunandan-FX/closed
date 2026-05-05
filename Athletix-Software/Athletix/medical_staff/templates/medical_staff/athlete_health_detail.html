@@ -183,9 +183,8 @@
             <p>Athlete Health Profile & History</p>
         </div>
         <div class="header-actions">
-            <a href="{% url 'home' %}" class="btn-logout">Home</a>
-            <a href="{% url 'medical_staff:dashboard' %}" class="btn-logout">Dashboard</a>
-            <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
+            <a href="javascript:history.back()" class="btn-logout">Back</a>
+            <a href="{% url 'medical_staff:dashboard' %}" class="btn-logout">Dashboard</a>            <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
         </div>
     </div>
 

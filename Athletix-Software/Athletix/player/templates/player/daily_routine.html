@@ -10,9 +10,8 @@
             <p>Your training schedule and routines</p>
         </div>
         <div class="header-actions">
-            <a href="{% url 'home' %}" class="btn-logout">Home</a>
-            <a href="{% url 'player:dashboard' %}" class="btn-logout">Dashboard</a>
-            <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
+            <a href="javascript:history.back()" class="btn-logout">Back</a>
+            <a href="{% url 'player:dashboard' %}" class="btn-logout">Dashboard</a>            <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
         </div>
     </div>
 
@@ -69,6 +68,11 @@
                                     <p style="color: var(--gray-600); font-size: 14px;">
                                         {{ routine.sport.name }} • Coach: {{ routine.coach.user.first_name }} {{ routine.coach.user.last_name }}
                                     </p>
+                                    {% if routine.workout_date %}
+                                    <p style="color: var(--gray-500); font-size: 12px;">
+                                        {{ routine.workout_date|date:"M d, Y" }}
+                                    </p>
+                                    {% endif %}
                                 </div>
                                 <div style="text-align: right;">
                                     <span style="background: var(--secondary); color: white; padding: 4px 12px; border-radius: 15px; font-size: 12px;">

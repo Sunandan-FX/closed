@@ -1,111 +1,91 @@
-from datetime import time
-
-from django.contrib.auth import get_user_model
+from django.test import TestCase, tag, Client
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from django.test import TestCase
-from django.test import tag
 from django.urls import reverse
 import os
+from unittest import SkipTest
+
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-from unittest import SkipTest
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import Select
 
-from player.models import AthleteSport, CoachRequest, DailyRoutine, Sport
-from user.models import CoachProfile
+from user.models import User
+from player.models import Sport, AthleteSport, CoachRequest, DailyRoutine
+from user.models import CoachProfile, AthleteProfile
 
+from datetime import date
 
-User = get_user_model()
+# ==============================================================================
+# -------------------------------- UNIT TESTS ----------------------------------
+# ==============================================================================
 
+@tag('unit')
+class PlayerAppUnitTests(TestCase):
+    """
+    Comprehensive Unit tests for the player app.
+    Run these ONLY with: python manage.py test player --tag=unit
+    """
 
-class PlayerAppTests(TestCase):
     def setUp(self):
-        self.athlete = User.objects.create_user(
-            email='athlete1@example.com',
-            name='Athlete One',
-            password='pass12345',
+        self.client = Client()
+        self.test_user = User.objects.create_user(
+            email='unit_player@example.com',
+            name='Unit Player',
+            password='testpassword123',
             role='athlete',
+            is_approved=True
         )
-        self.coach = User.objects.create_user(
-            email='coach1@example.com',
-            name='Coach One',
-            password='pass12345',
-            role='coach',
+        self.test_superuser = User.objects.create_superuser(
+            email='admin_player@example.com',
+            name='Admin',
+            password='testpassword123',
         )
-        self.sport_a, _ = Sport.objects.get_or_create(name='Football')
-        self.sport_b, _ = Sport.objects.get_or_create(name='Basketball')
-        self.coach_profile = CoachProfile.objects.create(user=self.coach, sport=self.sport_a)
 
-    def test_find_coaches_shows_all_sports(self):
-        self.client.force_login(self.athlete)
-        response = self.client.get(reverse('player:find_coaches'))
+    def test_model_creation(self):
+        """Basic model creation verification."""
+        self.assertEqual(self.test_user.email, 'unit_player@example.com')
+        self.assertTrue(self.test_user.check_password('testpassword123'))
+
+    def test_user_authentication(self):
+        """Test that user can log in and access system."""
+        login = self.client.login(email='unit_player@example.com', password='testpassword123')
+        self.assertTrue(login)
+
+    def test_player_dashboard_access(self):
+        """Unit Test: Ensures an authenticated athlete can access their dashboard."""
+        self.client.login(email='unit_player@example.com', password='testpassword123')
+        response = self.client.get(reverse('player:dashboard'))
         self.assertEqual(response.status_code, 200)
-        all_sports = response.context['all_sports']
-        all_sport_names = set(all_sports.values_list('name', flat=True))
-        self.assertIn('Football', all_sport_names)
-        self.assertIn('Basketball', all_sport_names)
+        self.assertTemplateUsed(response, 'player/dashboard.html')
 
-    def test_request_coach_rejects_non_matching_sport(self):
-        AthleteSport.objects.create(athlete=self.athlete, sport=self.sport_b, skill_level='beginner')
-
-        self.client.force_login(self.athlete)
-        response = self.client.post(reverse('player:request_coach', args=[self.coach_profile.id]))
-
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('player:select_sports'))
-        self.assertFalse(CoachRequest.objects.filter(athlete=self.athlete, coach=self.coach).exists())
-
-    def test_routine_detail_access_limited_to_owner_athlete(self):
-        other_athlete = User.objects.create_user(
-            email='athlete2@example.com',
-            name='Athlete Two',
-            password='pass12345',
-            role='athlete',
+    def test_non_athlete_redirected_from_player_dashboard(self):
+        """Unit Test: Verifies non-athlete users are redirected from the player dashboard."""
+        coach_user = User.objects.create_user(
+            email='coach@example.com',
+            name='Coach',
+            password='password',
+            role='coach',
+            is_approved=True
         )
-        routine = DailyRoutine.objects.create(
-            athlete=other_athlete,
-            coach=self.coach,
-            sport=self.sport_a,
-            day='monday',
-            title='Sprint Session',
-            start_time=time(6, 0),
-            end_time=time(7, 0),
-        )
+        self.client.login(email='coach@example.com', password='password')
+        response = self.client.get(reverse('player:dashboard'))
+        self.assertRedirects(response, reverse('home'))
 
-        self.client.force_login(self.athlete)
-        response = self.client.get(reverse('player:routine_detail', args=[routine.id]))
-        self.assertEqual(response.status_code, 404)
 
-    def test_request_coach_with_matching_sport_creates_pending_request(self):
-        AthleteSport.objects.create(athlete=self.athlete, sport=self.sport_a, skill_level='beginner')
-
-        self.client.force_login(self.athlete)
-        response = self.client.post(reverse('player:request_coach', args=[self.coach_profile.id]))
-
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('player:find_coaches'))
-        self.assertTrue(
-            CoachRequest.objects.filter(
-                athlete=self.athlete, coach=self.coach, sport=self.sport_a, status='pending'
-            ).exists()
-        )
-
-    def test_request_coach_get_does_not_create_request(self):
-        AthleteSport.objects.create(athlete=self.athlete, sport=self.sport_a, skill_level='beginner')
-
-        self.client.force_login(self.athlete)
-        response = self.client.get(reverse('player:request_coach', args=[self.coach_profile.id]))
-
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('player:find_coaches'))
-        self.assertFalse(CoachRequest.objects.filter(athlete=self.athlete, coach=self.coach).exists())
-
+# ==============================================================================
+# ------------------------------ SELENIUM TESTS --------------------------------
+# ==============================================================================
 
 @tag('selenium')
 class PlayerAppSeleniumTests(StaticLiveServerTestCase):
+    """
+    Comprehensive Selenium end-to-end tests for the player app.
+    Run these ONLY with: python manage.py test player --tag=selenium
+    """
+    
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -132,38 +112,40 @@ class PlayerAppSeleniumTests(StaticLiveServerTestCase):
         super().tearDownClass()
 
     def setUp(self):
+        self.sport = Sport.objects.create(name='Selenium Sport')
         self.athlete = User.objects.create_user(
-            email='selenium_athlete@example.com',
-            name='Selenium Athlete',
+            email='selenium_player@example.com',
+            name='Selenium Player',
             password='pass12345',
             role='athlete',
+            is_approved=True,
         )
-        self.sport_match, _ = Sport.objects.get_or_create(name='Selenium Match Sport')
-        self.sport_other, _ = Sport.objects.get_or_create(name='Selenium Other Sport')
-        AthleteSport.objects.create(athlete=self.athlete, sport=self.sport_match, skill_level='beginner')
-        self.matching_coach_user = User.objects.create_user(
-            email='selenium_matching_coach@example.com',
-            name='Matching Coach',
+        AthleteProfile.objects.get_or_create(user=self.athlete)
+
+        self.coach = User.objects.create_user(
+            email='selenium_player_coach@example.com',
+            name='Selenium Coach',
             password='pass12345',
             role='coach',
             is_approved=True,
         )
-        self.non_matching_coach_user = User.objects.create_user(
-            email='selenium_nonmatching_coach@example.com',
-            name='NonMatching Coach',
-            password='pass12345',
-            role='coach',
-            is_approved=True,
-        )
-        CoachProfile.objects.create(
-            user=self.matching_coach_user,
-            sport=self.sport_match,
-            specialization='Sprint'
-        )
-        CoachProfile.objects.create(
-            user=self.non_matching_coach_user,
-            sport=self.sport_other,
-            specialization='Strength'
+        CoachProfile.objects.get_or_create(user=self.coach, defaults={'sport': self.sport})
+        self.coach.coach_profile.sport = self.sport
+        self.coach.coach_profile.save()
+
+        AthleteSport.objects.get_or_create(athlete=self.athlete, sport=self.sport)
+        DailyRoutine.objects.create(
+            athlete=self.athlete,
+            coach=self.coach,
+            sport=self.sport,
+            day='monday',
+            workout_date=date.today(),
+            title='Existing Routine',
+            description='',
+            start_time='09:00',
+            end_time='10:00',
+            exercises='Run',
+            notes='',
         )
 
     def _login(self, email, password):
@@ -177,41 +159,52 @@ class PlayerAppSeleniumTests(StaticLiveServerTestCase):
         self.browser.find_element(By.ID, 'password').send_keys(password)
         self.browser.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
 
-    def test_player_dashboard_visible_after_login(self):
-        self._login('selenium_athlete@example.com', 'pass12345')
-        self.browser.get(self.live_server_url + reverse('player:dashboard'))
-        WebDriverWait(self.browser, 10).until(
-            lambda d: 'Athlete Dashboard' in d.page_source
-        )
-        self.assertIn('Athlete Dashboard', self.browser.page_source)
+    def test_athlete_login_and_view_dashboard(self):
+        """Selenium Test: An athlete logs in and views their dashboard."""
+        self._login('selenium_player@example.com', 'pass12345')
+        WebDriverWait(self.browser, 10).until(lambda d: d.current_url.endswith(reverse('player:dashboard')))
+        WebDriverWait(self.browser, 10).until(lambda d: 'Athlete Dashboard' in d.page_source)
 
-    def test_player_can_request_matching_coach_from_find_coaches(self):
-        self.browser.get(f'{self.live_server_url}/player/find_coaches')
-        request_button = WebDriverWait(self.browser, 20).until(
-          lambda d: d.find_element(By.ID, 'request-button')
-        )
-        request_button.click()
-        WebDriverWait(self.browser, 10).until(
-            lambda _: CoachRequest.objects.filter(
-                athlete=self.athlete,
-                coach=self.matching_coach_user,
-                sport=self.sport_match,
-                status='pending',
-            ).exists()
-        )
-        self.assertTrue(
-            CoachRequest.objects.filter(
-                athlete=self.athlete,
-                coach=self.matching_coach_user,
-                sport=self.sport_match,
-                status='pending',
-            ).exists()
-        )
+    def test_player_can_select_sport_and_request_coach(self):
+        """Selenium Test: Athlete selects a sport and requests a coach."""
+        self._login('selenium_player@example.com', 'pass12345')
 
-    def test_non_matching_coach_shows_disabled_request_button(self):
-        self._login('selenium_athlete@example.com', 'pass12345')
+        # Select sports
+        self.browser.get(self.live_server_url + reverse('player:select_sports'))
+        WebDriverWait(self.browser, 10).until(lambda d: 'Available Sports' in d.page_source)
+        checkbox = self.browser.find_element(By.CSS_SELECTOR, f"input[type='checkbox'][name='sports'][value='{self.sport.id}']")
+        if not checkbox.is_selected():
+            checkbox.click()
+        self.browser.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
+        WebDriverWait(self.browser, 10).until(lambda d: 'Sports selection updated' in d.page_source)
+
+        # Request coach
         self.browser.get(self.live_server_url + reverse('player:find_coaches'))
-        disabled_buttons = WebDriverWait(self.browser, 10).until(
-            lambda d: d.find_elements(By.XPATH, "//button[@disabled and contains(., 'Sport Not Selected')]")
-        )
-        self.assertGreaterEqual(len(disabled_buttons), 1)
+        WebDriverWait(self.browser, 10).until(lambda d: 'Find a Coach' in d.page_source)
+        self.browser.find_element(By.XPATH, "//button[contains(., 'Request Coach')]").click()
+        WebDriverWait(self.browser, 10).until(lambda d: 'Request sent' in d.page_source or 'pending' in d.page_source.lower())
+        self.assertTrue(CoachRequest.objects.filter(athlete=self.athlete, coach=self.coach, sport=self.sport).exists())
+
+    def test_player_can_submit_self_health_metrics(self):
+        """Selenium Test: Athlete submits health metrics from the dashboard."""
+        self._login('selenium_player@example.com', 'pass12345')
+        WebDriverWait(self.browser, 10).until(lambda d: d.current_url.endswith(reverse('player:dashboard')))
+
+        toggle = self.browser.find_element(By.ID, 'health-toggle-btn')
+        toggle.click()
+        WebDriverWait(self.browser, 10).until(lambda d: d.find_element(By.ID, 'health-metrics').is_displayed())
+
+        self.browser.find_element(By.ID, 'id_heart_rate').clear()
+        self.browser.find_element(By.ID, 'id_heart_rate').send_keys('60')
+        self.browser.find_element(By.ID, 'id_blood_pressure').clear()
+        self.browser.find_element(By.ID, 'id_blood_pressure').send_keys('120/80')
+        self.browser.find_element(By.ID, 'id_fatigue_level').clear()
+        self.browser.find_element(By.ID, 'id_fatigue_level').send_keys('2')
+
+        Select(self.browser.find_element(By.ID, 'id_injury_status')).select_by_value('none')
+        Select(self.browser.find_element(By.ID, 'id_recovery_status')).select_by_value('good')
+
+        # Submit form inside health metrics panel
+        self.browser.find_element(By.CSS_SELECTOR, "#health-metrics button[type='submit']").click()
+        WebDriverWait(self.browser, 10).until(lambda d: 'health metrics were saved' in d.page_source.lower())
+

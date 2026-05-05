@@ -2,26 +2,6 @@ import json
 from collections import Counter
 from datetime import datetime, time
 
-DAY_ORDER = [
-    'monday',
-    'tuesday',
-    'wednesday',
-    'thursday',
-    'friday',
-    'saturday',
-    'sunday',
-]
-
-DAY_LABELS = {
-    'monday': 'Mon',
-    'tuesday': 'Tue',
-    'wednesday': 'Wed',
-    'thursday': 'Thu',
-    'friday': 'Fri',
-    'saturday': 'Sat',
-    'sunday': 'Sun',
-}
-
 
 def _routine_duration_minutes(routine):
     start = datetime.combine(datetime.today(), routine.start_time)
@@ -42,9 +22,10 @@ def _performance_level(completion_rate):
 def build_routine_performance_data(routines_queryset):
     routines = list(routines_queryset.select_related('sport', 'coach'))
     routine_rows = []
-    day_totals = Counter()
-    completed_by_day = Counter()
+    date_totals = Counter()
+    completed_by_date = Counter()
     sport_totals = Counter()
+    date_labels = {}
 
     total_minutes = 0
     completed_count = 0
@@ -53,12 +34,19 @@ def build_routine_performance_data(routines_queryset):
         duration_minutes = _routine_duration_minutes(routine)
         routine.duration_minutes = duration_minutes
         routine_rows.append(routine)
-        day_totals[routine.day] += 1
+        if routine.created_at:
+            date_key = routine.created_at.date().isoformat()
+            date_totals[date_key] += 1
+            date_labels[date_key] = routine.created_at.strftime('%d %b %Y')
+        else:
+            date_key = 'unknown'
+            date_totals[date_key] += 1
+            date_labels[date_key] = 'Unknown date'
         sport_totals[routine.sport.name] += 1
         total_minutes += duration_minutes
         if routine.coach_approved_completion:
             completed_count += 1
-            completed_by_day[routine.day] += 1
+            completed_by_date[date_key] += 1
 
     total_routines = len(routine_rows)
     completion_rate = round((completed_count / total_routines) * 100) if total_routines else 0
@@ -66,9 +54,10 @@ def build_routine_performance_data(routines_queryset):
     total_hours = round(total_minutes / 60, 1)
     performance_level = _performance_level(completion_rate)
 
-    weekly_labels = [DAY_LABELS[day] for day in DAY_ORDER]
-    weekly_total = [day_totals.get(day, 0) for day in DAY_ORDER]
-    weekly_completed = [completed_by_day.get(day, 0) for day in DAY_ORDER]
+    sorted_dates = sorted(date_totals.keys())
+    date_based_labels = [date_labels[date_key] for date_key in sorted_dates]
+    date_based_total = [date_totals.get(date_key, 0) for date_key in sorted_dates]
+    date_based_completed = [completed_by_date.get(date_key, 0) for date_key in sorted_dates]
 
     sport_labels = list(sport_totals.keys())
     sport_values = list(sport_totals.values())
@@ -83,9 +72,9 @@ def build_routine_performance_data(routines_queryset):
         'total_hours': total_hours,
         'performance_level': performance_level,
         'weekly_chart_json': json.dumps({
-            'labels': weekly_labels,
-            'total': weekly_total,
-            'completed': weekly_completed,
+            'labels': date_based_labels,
+            'total': date_based_total,
+            'completed': date_based_completed,
         }),
         'completion_chart_json': json.dumps({
             'labels': ['Completed', 'Incomplete'],

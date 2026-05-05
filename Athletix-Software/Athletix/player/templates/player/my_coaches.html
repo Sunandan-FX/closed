@@ -10,9 +10,8 @@
             <p>Your assigned coaches and pending requests</p>
         </div>
         <div class="header-actions">
-            <a href="{% url 'home' %}" class="btn-logout">Home</a>
-            <a href="{% url 'player:find_coaches' %}" class="btn-logout">Find Coaches</a>
-            <a href="{% url 'player:dashboard' %}" class="btn-logout">Dashboard</a>
+            <a href="javascript:history.back()" class="btn-logout">Back</a>
+            <a href="{% url 'player:find_coaches' %}" class="btn-logout">Find Coaches</a>            <a href="{% url 'player:dashboard' %}" class="btn-logout">Dashboard</a>
         </div>
     </div>
 

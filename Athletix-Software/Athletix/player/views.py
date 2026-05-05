@@ -81,6 +81,26 @@ def player_profile(request):
 
 @login_required
 @athlete_required
+def health_report(request):
+    """View health metrics and medical feedback for the athlete"""
+    user = request.user
+    from medical_staff.models import AthleteHealthRecord, MedicalFeedback
+
+    health_records = AthleteHealthRecord.objects.filter(athlete=user).select_related('medical_staff')
+    feedbacks = MedicalFeedback.objects.filter(athlete=user).select_related('medical_staff')
+
+    context = {
+        'user': user,
+        'health_records': health_records,
+        'feedbacks': feedbacks,
+        'health_record_count': health_records.count(),
+        'feedback_count': feedbacks.count(),
+    }
+    return render(request, 'player/health_report.html', context)
+
+
+@login_required
+@athlete_required
 def select_sports(request):
     """Select sports for training"""
     user = request.user

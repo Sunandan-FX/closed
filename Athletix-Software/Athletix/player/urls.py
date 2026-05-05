@@ -7,6 +7,7 @@ urlpatterns = [
     path('dashboard/', views.player_dashboard, name='dashboard'),
     path('performance/', views.player_performance, name='performance'),
     path('profile/', views.player_profile, name='profile'),
+    path('health-report/', views.health_report, name='health_report'),
     path('sports/', views.select_sports, name='select_sports'),
     path('coaches/', views.find_coaches, name='find_coaches'),
     path('coaches/request/<int:coach_id>/', views.request_coach, name='request_coach'),

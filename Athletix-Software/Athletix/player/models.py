@@ -97,6 +97,7 @@ class DailyRoutine(models.Model):
     )
     sport = models.ForeignKey(Sport, on_delete=models.CASCADE)
     day = models.CharField(max_length=20, choices=DAY_CHOICES)
+    workout_date = models.DateField(null=True, blank=True)
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     start_time = models.TimeField()
@@ -110,6 +111,8 @@ class DailyRoutine(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        if self.workout_date:
+            return f"{self.athlete.first_name} - {self.workout_date} - {self.title}"
         return f"{self.athlete.first_name} - {self.day} - {self.title}"
 
     class Meta:

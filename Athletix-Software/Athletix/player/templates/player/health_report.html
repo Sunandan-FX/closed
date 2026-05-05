@@ -1,0 +1,88 @@
+{% extends 'user/base.html' %}
+
+{% block title %}Health Report - Athletix{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="user-info">
+            <h1>My Health Report</h1>
+            <p>Review your submitted metrics and medical feedback.</p>
+        </div>
+        <div class="header-actions">
+            <a href="javascript:history.back()" class="btn-logout">Back</a>
+            <a href="{% url 'player:dashboard' %}" class="btn-logout">Dashboard</a>
+            <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="dashboard-body">
+        <div class="info-grid" style="margin-bottom: 24px;">
+            <div class="info-card">
+                <div class="card-icon">📋</div>
+                <h3>Total Reports</h3>
+                <p>{{ health_record_count }}</p>
+            </div>
+            <div class="info-card">
+                <div class="card-icon">💬</div>
+                <h3>Feedback Entries</h3>
+                <p>{{ feedback_count }}</p>
+            </div>
+        </div>
+
+        <div class="section-card" style="margin-bottom: 24px;">
+            <div class="section-head">
+                <h2>Recent Health Metrics</h2>
+            </div>
+            {% if health_records %}
+            <div style="display: grid; gap: 12px;">
+                {% for item in health_records %}
+                <div class="info-card" style="text-align: left; padding: 18px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom: 6px;">
+                        <strong style="color:#11416a;">{{ item.created_at|date:"M d, Y H:i" }}</strong>
+                        <span style="font-size: 12px; color: var(--gray-600);">{{ item.get_recovery_status_display }}</span>
+                    </div>
+                    <div style="color: var(--gray-700); font-size: 14px;">
+                        HR {{ item.heart_rate }} bpm • Fatigue {{ item.fatigue_level }}/10 • Injury {{ item.get_injury_status_display }}
+                    </div>
+                    {% if item.performance_notes %}
+                    <div style="margin-top: 8px; color: var(--gray-600); font-size: 13px;">
+                        {{ item.performance_notes }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="color: var(--gray-600);">No health metrics submitted yet.</p>
+            {% endif %}
+        </div>
+
+        <div class="section-card">
+            <div class="section-head">
+                <h2>Medical Feedback</h2>
+            </div>
+            {% if feedbacks %}
+            <div style="display: grid; gap: 12px;">
+                {% for fb in feedbacks %}
+                <div class="info-card" style="text-align: left; padding: 18px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom: 6px;">
+                        <strong style="color:#08304b;">{{ fb.title }}</strong>
+                        <small style="color:#0f2e44;">{{ fb.created_at|date:"M d, Y" }}</small>
+                    </div>
+                    <div style="color: #27465b; font-size: 14px;">{{ fb.feedback|linebreaksbr }}</div>
+                    {% if fb.recommendations %}
+                    <div style="margin-top: 8px; color:#0b3a56; font-size: 13px;">
+                        <strong>Recommendations:</strong> {{ fb.recommendations|linebreaksbr }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="color: var(--gray-600);">No feedback from medical staff yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

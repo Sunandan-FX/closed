@@ -224,7 +224,6 @@
             <div class="hero-actions">
                 <a href="{% url 'player:dashboard' %}" class="hero-btn">Dashboard</a>
                 <a href="{% url 'player:daily_routine' %}" class="hero-btn">Routines</a>
-                <a href="{% url 'home' %}" class="hero-btn">Home</a>
             </div>
         </div>
 
@@ -254,7 +253,7 @@
         {% if total_routines %}
         <div class="charts-grid">
             <div class="chart-card">
-                <h3>Weekly Workload</h3>
+                <h3>Performance by Date</h3>
                 <div class="chart-wrap">
                     <canvas id="weeklyChart"></canvas>
                 </div>
