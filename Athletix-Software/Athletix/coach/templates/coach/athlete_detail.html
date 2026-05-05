@@ -10,6 +10,7 @@
             <p>Athlete Details</p>
         </div>
         <div class="header-actions">
+            <a href="javascript:history.back()" class="btn-logout">Back</a>
             <a href="{% url 'coach:my_athletes' %}" class="btn-logout">All Athletes</a>
             <a href="{% url 'coach:dashboard' %}" class="btn-logout">Dashboard</a>
         </div>
@@ -109,6 +110,11 @@
                                             <p style="color: var(--gray-600); font-size: 13px;">
                                                 {{ routine.sport.name }} • {{ routine.start_time|time:"H:i" }} - {{ routine.end_time|time:"H:i" }}
                                             </p>
+                                            {% if routine.workout_date %}
+                                            <p style="color: var(--gray-500); font-size: 12px;">
+                                                {{ routine.workout_date|date:"M d, Y" }}
+                                            </p>
+                                            {% endif %}
                                             {% if routine.coach_approved_completion %}
                                             <p style="color: #10b981; font-size: 12px; margin-top: 6px; font-weight: 600;">
                                                 Complete (Coach Approved)

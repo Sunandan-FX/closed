@@ -1,6 +1,7 @@
 {% extends 'user/base.html' %}
 
 {% block title %}Admin App - Athletix{% endblock %}
+{% block body_class %}dashboard-page{% endblock %}
 
 {% block content %}
 <div class="dashboard-container">
@@ -10,11 +11,12 @@
             <p>Manage players, coaches, medical staff, and approvals</p>
         </div>
         <div class="header-actions">
+            <a href="javascript:history.back()" class="btn-logout">Back</a>
             <a href="{% url 'admin_app:users' %}" class="btn-logout">All Users</a>
             <a href="{% url 'admin_app:players' %}" class="btn-logout">Players</a>
             <a href="{% url 'admin_app:coaches' %}" class="btn-logout">Coaches</a>
             <a href="{% url 'admin_app:medicals' %}" class="btn-logout">Medical Staff</a>
-            <a href="{% url 'home' %}" class="btn-logout">Home</a>
+            <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
         </div>
     </div>
 

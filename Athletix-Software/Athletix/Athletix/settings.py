@@ -105,3 +105,4 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Restricted admin access list (non-superuser staff allowed only if email is listed here)
 ADMIN_ALLOWED_EMAILS = []
 
+

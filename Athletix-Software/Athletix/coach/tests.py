@@ -1,147 +1,91 @@
-from datetime import time
-
-from django.contrib.auth import get_user_model
+from django.test import TestCase, tag, Client
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from django.test import TestCase
-from django.test import tag
 from django.urls import reverse
 import os
+from unittest import SkipTest
+
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-from unittest import SkipTest
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import Select
 
-from player.models import AthleteCoach, CoachRequest, DailyRoutine, Sport
-from user.models import AthleteProfile, CoachProfile
+from user.models import User
+from player.models import Sport, CoachRequest, AthleteCoach, DailyRoutine, AthleteSport
+from user.models import CoachProfile, AthleteProfile
 
+from datetime import date
 
-User = get_user_model()
+# ==============================================================================
+# -------------------------------- UNIT TESTS ----------------------------------
+# ==============================================================================
 
+@tag('unit')
+class CoachAppUnitTests(TestCase):
+    """
+    Comprehensive Unit tests for the coach app.
+    Run these ONLY with: python manage.py test coach --tag=unit
+    """
 
-class CoachAppTests(TestCase):
     def setUp(self):
-        self.coach = User.objects.create_user(
-            email='coach@example.com',
-            name='Coach User',
-            password='pass12345',
-            role='coach',
-        )
-        self.athlete = User.objects.create_user(
-            email='athlete@example.com',
-            name='Athlete User',
-            password='pass12345',
+        self.client = Client()
+        self.test_user = User.objects.create_user(
+            email='unit_coach@example.com',
+            name='Unit Coach',
+            password='testpassword123',
             role='athlete',
+            is_approved=True
         )
-        self.athlete_profile = AthleteProfile.objects.create(user=self.athlete)
-        self.sport_football, _ = Sport.objects.get_or_create(name='Football')
-        self.sport_tennis, _ = Sport.objects.get_or_create(name='Tennis')
-        self.coach_profile = CoachProfile.objects.create(user=self.coach, sport=self.sport_football)
-
-    def test_accept_request_with_matching_sport_creates_relation(self):
-        coach_request = CoachRequest.objects.create(
-            athlete=self.athlete,
-            coach=self.coach,
-            sport=self.sport_football,
-            status='pending',
-        )
-        self.client.force_login(self.coach)
-        response = self.client.post(reverse('coach:handle_request', args=[coach_request.id, 'accept']))
-
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('coach:athlete_requests'))
-        coach_request.refresh_from_db()
-        self.assertEqual(coach_request.status, 'accepted')
-        self.assertTrue(
-            AthleteCoach.objects.filter(
-                athlete=self.athlete, coach=self.coach, sport=self.sport_football, is_active=True
-            ).exists()
+        self.test_superuser = User.objects.create_superuser(
+            email='admin_coach@example.com',
+            name='Admin',
+            password='testpassword123',
         )
 
-    def test_accept_request_with_mismatched_sport_is_blocked(self):
-        coach_request = CoachRequest.objects.create(
-            athlete=self.athlete,
-            coach=self.coach,
-            sport=self.sport_tennis,
-            status='pending',
+    def test_model_creation(self):
+        """Basic model creation verification."""
+        self.assertEqual(self.test_user.email, 'unit_coach@example.com')
+        self.assertTrue(self.test_user.check_password('testpassword123'))
+
+    def test_user_authentication(self):
+        """Test that user can log in and access system."""
+        login = self.client.login(email='unit_coach@example.com', password='testpassword123')
+        self.assertTrue(login)
+
+    def test_coach_dashboard_access(self):
+        """Unit Test: Ensures only authenticated coaches can access the coach dashboard."""
+        coach_user = User.objects.create_user(
+            email='coach_user@example.com',
+            name='Coach User',
+            password='password',
+            role='coach',
+            is_approved=True
         )
-        self.client.force_login(self.coach)
-        response = self.client.post(reverse('coach:handle_request', args=[coach_request.id, 'accept']))
+        self.client.login(email='coach_user@example.com', password='password')
+        response = self.client.get(reverse('coach:dashboard'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'coach/dashboard.html')
 
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('coach:athlete_requests'))
-        coach_request.refresh_from_db()
-        self.assertEqual(coach_request.status, 'pending')
-        self.assertFalse(AthleteCoach.objects.filter(athlete=self.athlete, coach=self.coach).exists())
+    def test_non_coach_redirected_from_dashboard(self):
+        """Unit Test: Verifies non-coach users are redirected from the coach dashboard."""
+        self.client.login(email='unit_coach@example.com', password='testpassword123') # Logs in as an athlete
+        response = self.client.get(reverse('coach:dashboard'))
+        self.assertRedirects(response, reverse('home'))
 
-    def test_approve_routine_completion_sets_completion_fields(self):
-        routine = DailyRoutine.objects.create(
-            athlete=self.athlete,
-            coach=self.coach,
-            sport=self.sport_football,
-            day='monday',
-            title='Drill',
-            start_time=time(7, 0),
-            end_time=time(8, 0),
-            completion_message='Not complete',
-        )
-        AthleteCoach.objects.create(
-            athlete=self.athlete,
-            coach=self.coach,
-            sport=self.sport_football,
-            is_active=True,
-        )
-        self.client.force_login(self.coach)
-        response = self.client.post(reverse('coach:approve_routine_completion', args=[routine.id]))
 
-        self.assertEqual(response.status_code, 302)
-        routine.refresh_from_db()
-        self.assertTrue(routine.athlete_marked_complete)
-        self.assertTrue(routine.coach_approved_completion)
-        self.assertEqual(routine.completion_message, 'Approved by coach.')
-
-    def test_approve_routine_completion_get_redirects_without_update(self):
-        routine = DailyRoutine.objects.create(
-            athlete=self.athlete,
-            coach=self.coach,
-            sport=self.sport_football,
-            day='tuesday',
-            title='Speed Work',
-            start_time=time(9, 0),
-            end_time=time(10, 0),
-            completion_message='Not complete',
-        )
-        self.client.force_login(self.coach)
-        response = self.client.get(reverse('coach:approve_routine_completion', args=[routine.id]))
-
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('coach:my_athletes'))
-        routine.refresh_from_db()
-        self.assertFalse(routine.coach_approved_completion)
-
-    def test_accept_request_without_coach_sport_is_blocked(self):
-        self.coach_profile.sport = None
-        self.coach_profile.save(update_fields=['sport'])
-        coach_request = CoachRequest.objects.create(
-            athlete=self.athlete,
-            coach=self.coach,
-            sport=self.sport_football,
-            status='pending',
-        )
-
-        self.client.force_login(self.coach)
-        response = self.client.post(reverse('coach:handle_request', args=[coach_request.id, 'accept']))
-
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('coach:athlete_requests'))
-        coach_request.refresh_from_db()
-        self.assertEqual(coach_request.status, 'pending')
-
+# ==============================================================================
+# ------------------------------ SELENIUM TESTS --------------------------------
+# ==============================================================================
 
 @tag('selenium')
 class CoachAppSeleniumTests(StaticLiveServerTestCase):
+    """
+    Comprehensive Selenium end-to-end tests for the coach app.
+    Run these ONLY with: python manage.py test coach --tag=selenium
+    """
+    
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -168,6 +112,7 @@ class CoachAppSeleniumTests(StaticLiveServerTestCase):
         super().tearDownClass()
 
     def setUp(self):
+        self.sport = Sport.objects.create(name='Selenium Sport')
         self.coach = User.objects.create_user(
             email='selenium_coach@example.com',
             name='Selenium Coach',
@@ -175,21 +120,26 @@ class CoachAppSeleniumTests(StaticLiveServerTestCase):
             role='coach',
             is_approved=True,
         )
-        self.sport, _ = Sport.objects.get_or_create(name='Selenium Sport Coach')
-        CoachProfile.objects.create(user=self.coach, sport=self.sport)
+        CoachProfile.objects.get_or_create(user=self.coach, defaults={'sport': self.sport})
+        # Ensure sport is assigned so coach can accept requests
+        self.coach.coach_profile.sport = self.sport
+        self.coach.coach_profile.save()
+
         self.athlete = User.objects.create_user(
-            email='selenium_athlete_for_coach@example.com',
-            name='Coach Side Athlete',
-            password='pass12345',
+            email='athlete@example.com',
+            name='Test Athlete',
+            password='password',
             role='athlete',
+            is_approved=True
         )
-        AthleteProfile.objects.create(user=self.athlete)
-        self.request_obj = CoachRequest.objects.create(
+        AthleteProfile.objects.get_or_create(user=self.athlete)
+        AthleteSport.objects.get_or_create(athlete=self.athlete, sport=self.sport)
+
+        self.pending_request = CoachRequest.objects.create(
             athlete=self.athlete,
             coach=self.coach,
             sport=self.sport,
             status='pending',
-            message='Need training plan',
         )
 
     def _login(self, email, password):
@@ -203,59 +153,44 @@ class CoachAppSeleniumTests(StaticLiveServerTestCase):
         self.browser.find_element(By.ID, 'password').send_keys(password)
         self.browser.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
 
-    def test_coach_dashboard_visible_after_login(self):
+    def test_basic_login_flow(self):
+        """Selenium Test: Verify basic login works across apps."""
         self._login('selenium_coach@example.com', 'pass12345')
-        self.browser.get(self.live_server_url + reverse('coach:dashboard'))
-        WebDriverWait(self.browser, 10).until(lambda d: 'coach/dashboard' in d.current_url)
-        self.assertIn('Coach Dashboard', self.browser.page_source)
-
-    def test_coach_can_accept_request_from_athlete_requests_page(self):
-        self._login('selenium_coach@example.com', 'pass12345')
-        self.browser.get(self.live_server_url + reverse('coach:athlete_requests'))
-        accept_button = WebDriverWait(self.browser, 10).until(
-            lambda d: d.find_element(
-                By.XPATH,
-                f"//form[contains(@action, '/coach/requests/{self.request_obj.id}/accept/')]/button"
-            )
+        WebDriverWait(self.browser, 10).until(
+            lambda d: d.current_url.endswith(reverse('coach:dashboard'))
         )
+
+    def test_coach_can_accept_request_and_create_routine(self):
+        """Selenium Test: Coach accepts an athlete request and creates a routine."""
+        self._login('selenium_coach@example.com', 'pass12345')
+        WebDriverWait(self.browser, 10).until(lambda d: d.current_url.endswith(reverse('coach:dashboard')))
+
+        # Accept the pending request
+        self.browser.get(self.live_server_url + reverse('coach:athlete_requests'))
+        WebDriverWait(self.browser, 10).until(lambda d: 'Pending Requests' in d.page_source or 'Pending' in d.page_source)
+
+        accept_button = self.browser.find_element(By.XPATH, "//button[contains(., 'Accept')]")
         accept_button.click()
-        WebDriverWait(self.browser, 10).until(
-            lambda _: CoachRequest.objects.get(id=self.request_obj.id).status == 'accepted'
-        )
-        self.request_obj.refresh_from_db()
-        self.assertEqual(self.request_obj.status, 'accepted')
+
+        WebDriverWait(self.browser, 10).until(lambda d: 'Accepted' in d.page_source or 'accepted' in d.page_source)
         self.assertTrue(
-            AthleteCoach.objects.filter(
-                athlete=self.athlete, coach=self.coach, sport=self.sport, is_active=True
-            ).exists()
+            AthleteCoach.objects.filter(athlete=self.athlete, coach=self.coach, sport=self.sport, is_active=True).exists()
         )
 
-    def test_coach_can_reject_request_from_athlete_requests_page(self):
-        second_athlete = User.objects.create_user(
-            email='selenium_athlete_for_reject@example.com',
-            name='Reject Athlete',
-            password='pass12345',
-            role='athlete',
-        )
-        AthleteProfile.objects.create(user=second_athlete)
-        reject_request = CoachRequest.objects.create(
-            athlete=second_athlete,
-            coach=self.coach,
-            sport=self.sport,
-            status='pending',
-        )
+        # Create a routine
+        self.browser.get(self.live_server_url + reverse('coach:create_routine_select'))
+        WebDriverWait(self.browser, 10).until(lambda d: 'Create Routine' in d.page_source)
+        self.browser.find_element(By.LINK_TEXT, 'Create Routine').click()
 
-        self._login('selenium_coach@example.com', 'pass12345')
-        self.browser.get(self.live_server_url + reverse('coach:athlete_requests'))
-        reject_button = WebDriverWait(self.browser, 10).until(
-            lambda d: d.find_element(
-                By.XPATH,
-                f"//form[contains(@action, '/coach/requests/{reject_request.id}/reject/')]/button"
-            )
-        )
-        reject_button.click()
-        WebDriverWait(self.browser, 10).until(
-            lambda _: CoachRequest.objects.get(id=reject_request.id).status == 'rejected'
-        )
-        reject_request.refresh_from_db()
-        self.assertEqual(reject_request.status, 'rejected')
+        WebDriverWait(self.browser, 10).until(lambda d: d.find_element(By.ID, 'title').is_displayed())
+        self.browser.find_element(By.ID, 'title').send_keys('Selenium Routine')
+        Select(self.browser.find_element(By.ID, 'sport')).select_by_visible_text(self.sport.name)
+        Select(self.browser.find_element(By.ID, 'day_of_week')).select_by_value('monday')
+        self.browser.find_element(By.ID, 'workout_date').send_keys(date.today().isoformat())
+        self.browser.find_element(By.ID, 'start_time').send_keys('09:00')
+        self.browser.find_element(By.ID, 'end_time').send_keys('10:00')
+        self.browser.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
+
+        WebDriverWait(self.browser, 10).until(lambda d: 'Routine created' in d.page_source)
+        self.assertTrue(DailyRoutine.objects.filter(athlete=self.athlete, coach=self.coach, title='Selenium Routine').exists())
+

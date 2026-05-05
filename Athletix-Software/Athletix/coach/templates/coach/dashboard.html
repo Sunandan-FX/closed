@@ -1,6 +1,7 @@
 {% extends 'user/base.html' %}
 
 {% block title %}Coach Dashboard - Athletix{% endblock %}
+{% block body_class %}dashboard-page{% endblock %}
 
 {% block content %}
 <style>
@@ -102,9 +103,17 @@
             <p>Manage athlete requests, routines, and performance plans</p>
         </div>
         <div class="header-actions">
-            <a href="{% url 'home' %}" class="btn-logout">Home</a>
-            <a href="{% url 'profile_search' %}" class="btn-logout">Search Profiles</a>
+            <a href="javascript:history.back()" class="btn-logout">Back</a>
             <a href="{% url 'coach:profile' %}" class="btn-logout">My Profile</a>
+            <a href="{% url 'profile_search' %}" class="btn-logout">Search Profiles</a>
+            <a href="{% url 'dashboard' %}" class="btn-logout">Dashboard</a>
+            <a href="{% url 'chat:conversations_list' %}" class="btn-logout">Chat</a>
+            {% if user.role == 'medical' %}
+            <a href="{% url 'medical_staff:dashboard' %}" class="btn-logout">Medical Dashboard</a>
+            {% endif %}
+            {% if user.is_staff or user.is_superuser %}
+            <a href="{% url 'admin_app:dashboard' %}" class="btn-logout">Admin App</a>
+            {% endif %}
             <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
         </div>
     </div>
@@ -133,6 +142,7 @@
             <div class="action-grid">
                 <a href="{% url 'coach:athlete_requests' %}" class="action-chip">Review Requests</a>
                 <a href="{% url 'coach:my_athletes' %}" class="action-chip">My Athletes</a>
+                <a href="{% url 'coach:create_routine_select' %}" class="action-chip">Create Routine</a>
                 <a href="{% url 'coach:performance' %}" class="action-chip">Search Performance</a>
                 <a href="{% url 'coach:profile' %}" class="action-chip">My Profile</a>
             </div>

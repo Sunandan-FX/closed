@@ -10,12 +10,13 @@
             <p>View, edit, activate/deactivate, and delete users</p>
         </div>
         <div class="header-actions">
+            <a href="javascript:history.back()" class="btn-logout">Back</a>
             <a href="{% url 'admin_app:dashboard' %}" class="btn-logout">Dashboard</a>
             <a href="{% url 'admin_app:users' %}" class="btn-logout">All Users</a>
             <a href="{% url 'admin_app:players' %}" class="btn-logout">Players</a>
             <a href="{% url 'admin_app:coaches' %}" class="btn-logout">Coaches</a>
             <a href="{% url 'admin_app:medicals' %}" class="btn-logout">Medical Staff</a>
-            <a href="{% url 'home' %}" class="btn-logout">Home</a>
+            <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
         </div>
     </div>
 

@@ -107,7 +107,11 @@
     </div>
 
     <div class="auth-footer">
+        <a href="javascript:history.back()">← Back</a>
+        <span class="separator">|</span>
         <a href="{% url 'admin_app:users' %}">← Back to Users</a>
+        <span class="separator">|</span>
+        <a href="{% url 'logout' %}">Logout</a>
     </div>
 </div>
 {% endblock %}

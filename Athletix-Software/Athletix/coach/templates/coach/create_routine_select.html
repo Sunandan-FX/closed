@@ -1,0 +1,53 @@
+{% extends 'user/base.html' %}
+
+{% block title %}Create Routine - Athletix{% endblock %}
+{% block body_class %}dashboard-page{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="user-info">
+            <h1>Create Routine</h1>
+            <p>Select an athlete to add a training routine.</p>
+        </div>
+        <div class="header-actions">
+            <a href="javascript:history.back()" class="btn-logout">Back</a>
+            <a href="{% url 'coach:dashboard' %}" class="btn-logout">Dashboard</a>            <a href="{% url 'coach:my_athletes' %}" class="btn-logout">My Athletes</a>
+            <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="dashboard-body">
+        {% if my_athletes %}
+        <div class="athlete-grid">
+            {% for ac in my_athletes %}
+            {% if ac.athlete_profile %}
+            <div class="athlete-item">
+                <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                    <div class="mini-avatar" style="background: var(--secondary); margin-right: 12px;">
+                        {{ ac.athlete.first_name|slice:":1" }}{{ ac.athlete.last_name|slice:":1" }}
+                    </div>
+                    <div>
+                        <h4 style="color: var(--gray-900); margin-bottom: 4px;">
+                            {{ ac.athlete.first_name }} {{ ac.athlete.last_name }}
+                        </h4>
+                        {% if ac.sport %}
+                        <span style="background: var(--gray-200); color: var(--gray-600); padding: 2px 8px; border-radius: 10px; font-size: 11px;">
+                            {{ ac.sport.name }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <a href="{% url 'coach:create_routine' ac.athlete_profile.id %}" class="btn btn-primary" style="width: 100%; text-align: center;">
+                    Create Routine
+                </a>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: var(--gray-600);">No assigned athletes yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -11,7 +11,7 @@ from user.models import User
 def coach_required(view_func):
     """Decorator to ensure user is a coach"""
     def wrapper(request, *args, **kwargs):
-        if request.user.role != 'coach':
+        if not (request.user.role == 'coach' or request.user.is_staff or request.user.is_superuser):
             messages.error(request, 'Access denied. Coaches only.')
             return redirect('home')
         return view_func(request, *args, **kwargs)
@@ -210,6 +210,79 @@ def athlete_detail(request, athlete_id):
     return render(request, 'coach/athlete_detail.html', context)
 
 
+def _get_active_coach_athlete(request, athlete_profile_id):
+    from user.models import AthleteProfile
+    athlete_profile = get_object_or_404(AthleteProfile, id=athlete_profile_id)
+    athlete = athlete_profile.user
+    athlete_coach = AthleteCoach.objects.filter(athlete=athlete, coach=request.user, is_active=True).first()
+    if not athlete_coach:
+        messages.error(request, 'You are not coaching this athlete.')
+        return None, None
+    return athlete_profile, athlete
+
+
+@login_required
+@coach_required
+def create_routine_select(request):
+    """Create a routine by selecting an athlete first"""
+    my_athletes = AthleteCoach.objects.filter(
+        coach=request.user,
+        is_active=True
+    ).select_related('athlete', 'sport')
+
+    for ac in my_athletes:
+        try:
+            ac.athlete_profile = ac.athlete.athlete_profile
+        except:
+            ac.athlete_profile = None
+
+    if request.method == 'POST':
+        athlete_id = request.POST.get('athlete_id')
+        athlete_profile, athlete = _get_active_coach_athlete(request, athlete_id)
+        if not athlete_profile:
+            return redirect('coach:create_routine_select')
+
+        day = request.POST.get('day_of_week')
+        workout_date = request.POST.get('workout_date')
+        title = request.POST.get('title')
+        description = request.POST.get('description', '')
+        start_time = request.POST.get('start_time')
+        end_time = request.POST.get('end_time')
+        exercises = request.POST.get('exercises', '')
+        notes = request.POST.get('notes', '')
+        sport_id = request.POST.get('sport')
+
+        if all([day, workout_date, title, start_time, end_time, sport_id]):
+            sport = get_object_or_404(Sport, id=sport_id)
+            DailyRoutine.objects.create(
+                athlete=athlete,
+                coach=request.user,
+                sport=sport,
+                day=day,
+                workout_date=workout_date,
+                title=title,
+                description=description,
+                start_time=start_time,
+                end_time=end_time,
+                exercises=exercises,
+                notes=notes,
+                athlete_marked_complete=False,
+                coach_approved_completion=False,
+                completion_message='Not complete'
+            )
+            messages.success(request, f'Routine created for {athlete.first_name} on {day.title()}!')
+            return redirect('coach:athlete_detail', athlete_id=athlete_profile.id)
+
+        messages.error(request, 'Please fill in all required fields.')
+
+    sports = Sport.objects.all()
+    context = {
+        'my_athletes': my_athletes,
+        'sports': sports,
+    }
+    return render(request, 'coach/create_routine.html', context)
+
+
 @login_required
 @coach_required
 def create_routine(request, athlete_id):
@@ -226,6 +299,7 @@ def create_routine(request, athlete_id):
     
     if request.method == 'POST':
         day = request.POST.get('day_of_week')
+        workout_date = request.POST.get('workout_date')
         title = request.POST.get('title')
         description = request.POST.get('description', '')
         start_time = request.POST.get('start_time')
@@ -234,13 +308,14 @@ def create_routine(request, athlete_id):
         notes = request.POST.get('notes', '')
         sport_id = request.POST.get('sport')
         
-        if all([day, title, start_time, end_time, sport_id]):
+        if all([day, workout_date, title, start_time, end_time, sport_id]):
             sport = get_object_or_404(Sport, id=sport_id)
             DailyRoutine.objects.create(
                 athlete=athlete,
                 coach=request.user,
                 sport=sport,
                 day=day,
+                workout_date=workout_date,
                 title=title,
                 description=description,
                 start_time=start_time,
@@ -273,6 +348,7 @@ def edit_routine(request, routine_id):
     
     if request.method == 'POST':
         routine.day = request.POST.get('day_of_week', routine.day)
+        routine.workout_date = request.POST.get('workout_date') or None
         routine.title = request.POST.get('title', routine.title)
         routine.description = request.POST.get('description', '')
         routine.start_time = request.POST.get('start_time', routine.start_time)

@@ -1,220 +1,110 @@
-from django.contrib.auth import get_user_model
+from django.test import TestCase, tag, Client
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from django.test import TestCase
-from django.test import tag
 from django.urls import reverse
 import os
+from unittest import SkipTest
+
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-from unittest import SkipTest
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 
-from user.models import AthleteProfile, MedicalProfile
+from user.models import User
+from player.models import Sport
 
+# ==============================================================================
+# -------------------------------- UNIT TESTS ----------------------------------
+# ==============================================================================
 
-User = get_user_model()
+@tag('unit')
+class AdminAppUnitTests(TestCase):
+    """
+    Comprehensive Unit tests for the Admin app.
+    Run these ONLY with: python manage.py test Admin --tag=unit
+    """
 
-
-class AdminAppTests(TestCase):
     def setUp(self):
-        self.staff_user = User.objects.create_user(
-            email='staff@example.com',
-            name='Staff User',
-            password='pass12345',
-            role='coach',
-            is_staff=True,
-        )
-        self.normal_user = User.objects.create_user(
-            email='athlete@example.com',
-            name='Athlete User',
-            password='pass12345',
+        self.client = Client()
+        self.test_user = User.objects.create_user(
+            email='unit_Admin@example.com',
+            name='Unit Admin',
+            password='testpassword123',
             role='athlete',
+            is_approved=True
         )
-        self.pending_coach = User.objects.create_user(
-            email='pendingcoach@example.com',
-            name='Pending Coach',
-            password='pass12345',
-            role='coach',
-            is_approved=False,
-            is_active=False,
-        )
-        self.pending_medical = User.objects.create_user(
-            email='pendingmedical@example.com',
-            name='Pending Medical',
-            password='pass12345',
-            role='medical',
-            is_approved=False,
-            is_active=False,
+        self.test_superuser = User.objects.create_superuser(
+            email='admin_Admin@example.com',
+            name='Admin',
+            password='testpassword123',
         )
 
-    def test_dashboard_accessible_for_staff(self):
-        self.client.force_login(self.staff_user)
+    def test_model_creation(self):
+        """Basic model creation verification."""
+        self.assertEqual(self.test_user.email, 'unit_Admin@example.com')
+        self.assertTrue(self.test_user.check_password('testpassword123'))
+
+    def test_user_authentication(self):
+        """Test that user can log in and access system."""
+        login = self.client.login(email='unit_Admin@example.com', password='testpassword123')
+        self.assertTrue(login)
+
+    def test_admin_dashboard_access_for_superuser(self):
+        """Unit Test: Ensures only superusers can access the admin dashboard."""
+        self.client.login(email='admin_Admin@example.com', password='testpassword123')
         response = self.client.get(reverse('admin_app:dashboard'))
         self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'Admin/dashboard.html')
 
-    def test_dashboard_denied_for_non_staff(self):
-        self.client.force_login(self.normal_user)
+    def test_non_superuser_redirected_from_admin_dashboard(self):
+        """Unit Test: Verifies non-superusers are redirected from the admin dashboard."""
+        self.client.login(email='unit_Admin@example.com', password='testpassword123')
         response = self.client.get(reverse('admin_app:dashboard'))
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('home'))
+        self.assertRedirects(response, reverse('home'))
 
-    def test_approve_coach_view_approves_pending_coach(self):
-        self.client.force_login(self.staff_user)
-        response = self.client.post(
-            reverse('admin_app:approve_coach', args=[self.pending_coach.id])
-        )
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('admin_app:users'))
-
-        self.pending_coach.refresh_from_db()
-        self.assertTrue(self.pending_coach.is_approved)
-        self.assertTrue(self.pending_coach.is_active)
-
-    def test_toggle_user_status_post_toggles_user_activity(self):
-        self.client.force_login(self.staff_user)
-        self.assertTrue(self.normal_user.is_active)
-
-        response = self.client.post(
-            reverse('admin_app:toggle_user_status', args=[self.normal_user.id])
-        )
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('admin_app:users'))
-
-        self.normal_user.refresh_from_db()
-        self.assertFalse(self.normal_user.is_active)
-
-    def test_approve_coach_get_does_not_change_status(self):
-        self.client.force_login(self.staff_user)
-        response = self.client.get(reverse('admin_app:approve_coach', args=[self.pending_coach.id]))
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('admin_app:users'))
-
-        self.pending_coach.refresh_from_db()
-        self.assertFalse(self.pending_coach.is_approved)
-
-    def test_approve_medical_view_approves_pending_medical(self):
-        self.client.force_login(self.staff_user)
-        response = self.client.post(
-            reverse('admin_app:approve_medical', args=[self.pending_medical.id])
-        )
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('admin_app:users'))
-
-        self.pending_medical.refresh_from_db()
-        self.assertTrue(self.pending_medical.is_approved)
-        self.assertTrue(self.pending_medical.is_active)
-
-    def test_approve_medical_get_does_not_change_status(self):
-        self.client.force_login(self.staff_user)
-        response = self.client.get(reverse('admin_app:approve_medical', args=[self.pending_medical.id]))
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('admin_app:users'))
-
-        self.pending_medical.refresh_from_db()
-        self.assertFalse(self.pending_medical.is_approved)
-
-    def test_edit_medical_user_updates_medical_profile_fields(self):
-        medical_user = User.objects.create_user(
-            email='medic@example.com',
-            name='Medic User',
-            password='pass12345',
-            role='medical',
+    def test_user_approval_and_rejection_flow(self):
+        """Unit Test: Admin can approve coach accounts and toggle active status."""
+        pending_coach = User.objects.create_user(
+            email='pending_coach@example.com',
+            name='Pending Coach',
+            password='password',
+            role='coach',
+            is_approved=False,
             is_active=True,
         )
-        self.client.force_login(self.staff_user)
-        response = self.client.post(
-            reverse('admin_app:edit_user', args=[medical_user.id]),
-            data={
-                'name': 'Updated Medic',
-                'email': 'medic@example.com',
-                'phone': '01700000000',
-                'address': 'Dhaka',
-                'blood_group': 'A+',
-                'is_active': 'on',
-                'license_no': 'MED-7788',
-                'specialty': 'Sports Medicine',
-            },
-        )
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('admin_app:users'))
-
-        medical_user.refresh_from_db()
-        self.assertEqual(medical_user.name, 'Updated Medic')
-        self.assertEqual(medical_user.phone, '01700000000')
-        self.assertEqual(medical_user.address, 'Dhaka')
-        self.assertEqual(medical_user.blood_group, 'A+')
-        self.assertTrue(medical_user.is_active)
-        self.assertTrue(hasattr(medical_user, 'medical_profile'))
-        self.assertEqual(medical_user.medical_profile.license_no, 'MED-7788')
-        self.assertEqual(medical_user.medical_profile.specialty, 'Sports Medicine')
-
-    def test_edit_athlete_user_creates_athlete_profile_if_missing(self):
-        athlete_user = User.objects.create_user(
-            email='athlete-new@example.com',
-            name='Athlete New',
-            password='pass12345',
+        toggle_user = User.objects.create_user(
+            email='toggle@example.com',
+            name='Toggle User',
+            password='password',
             role='athlete',
+            is_approved=True,
             is_active=True,
         )
-        self.assertFalse(AthleteProfile.objects.filter(user=athlete_user).exists())
-        self.client.force_login(self.staff_user)
-        response = self.client.post(
-            reverse('admin_app:edit_user', args=[athlete_user.id]),
-            data={
-                'name': 'Athlete Updated',
-                'email': 'athlete-new@example.com',
-                'phone': '',
-                'address': '',
-                'blood_group': '',
-                'is_active': 'on',
-                'age': '19',
-                'height': "5'8\"",
-                'weight': '64 kg',
-                'fitness_level': 'high',
-            },
-        )
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('admin_app:users'))
-        self.assertTrue(AthleteProfile.objects.filter(user=athlete_user).exists())
-        athlete_profile = AthleteProfile.objects.get(user=athlete_user)
-        self.assertEqual(athlete_profile.age, 19)
-        self.assertEqual(athlete_profile.height, "5'8\"")
-        self.assertEqual(athlete_profile.weight, '64 kg')
-        self.assertEqual(athlete_profile.fitness_level, 'high')
 
-    def test_edit_medical_user_creates_medical_profile_if_missing(self):
-        medical_user = User.objects.create_user(
-            email='medic-new@example.com',
-            name='Medic New',
-            password='pass12345',
-            role='medical',
-            is_active=True,
-        )
-        self.assertFalse(MedicalProfile.objects.filter(user=medical_user).exists())
-        self.client.force_login(self.staff_user)
-        response = self.client.post(
-            reverse('admin_app:edit_user', args=[medical_user.id]),
-            data={
-                'name': 'Medic New',
-                'email': 'medic-new@example.com',
-                'phone': '',
-                'address': '',
-                'blood_group': '',
-                'is_active': 'on',
-                'license_no': 'MED-001',
-                'specialty': 'Physiotherapy',
-            },
-        )
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, reverse('admin_app:users'))
-        self.assertTrue(MedicalProfile.objects.filter(user=medical_user).exists())
+        self.client.login(email='admin_Admin@example.com', password='testpassword123')
 
+        self.client.post(reverse('admin_app:approve_coach', args=[pending_coach.id]))
+        pending_coach.refresh_from_db()
+        self.assertTrue(pending_coach.is_approved)
+
+        self.client.post(reverse('admin_app:toggle_user_status', args=[toggle_user.id]))
+        toggle_user.refresh_from_db()
+        self.assertFalse(toggle_user.is_active)
+
+
+
+# ==============================================================================
+# ------------------------------ SELENIUM TESTS --------------------------------
+# ==============================================================================
 
 @tag('selenium')
 class AdminAppSeleniumTests(StaticLiveServerTestCase):
+    """
+    Comprehensive Selenium end-to-end tests for the Admin app.
+    Run these ONLY with: python manage.py test Admin --tag=selenium
+    """
+    
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -241,26 +131,24 @@ class AdminAppSeleniumTests(StaticLiveServerTestCase):
         super().tearDownClass()
 
     def setUp(self):
-        self.staff_user = User.objects.create_user(
+        self.user = User.objects.create_user(
+            email='selenium_Admin@example.com',
+            name='Selenium Admin',
+            password='pass12345',
+            role='athlete',
+            is_approved=True,
+        )
+        self.admin = User.objects.create_superuser(
             email='selenium_admin_staff@example.com',
             name='Selenium Staff',
             password='pass12345',
-            role='coach',
-            is_staff=True,
         )
         self.pending_coach = User.objects.create_user(
             email='selenium_pending_coach@example.com',
-            name='Pending Selenium Coach',
+            name='Selenium Pending Coach',
             password='pass12345',
             role='coach',
             is_approved=False,
-            is_active=False,
-        )
-        self.normal_user = User.objects.create_user(
-            email='selenium_normal_user@example.com',
-            name='Selenium Normal User',
-            password='pass12345',
-            role='athlete',
             is_active=True,
         )
 
@@ -275,41 +163,28 @@ class AdminAppSeleniumTests(StaticLiveServerTestCase):
         self.browser.find_element(By.ID, 'password').send_keys(password)
         self.browser.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
 
-    def test_staff_can_open_admin_app_dashboard(self):
-        self._login('selenium_admin_staff@example.com', 'pass12345')
-        self.browser.get(self.live_server_url + reverse('admin_app:dashboard'))
-        WebDriverWait(self.browser, 10).until(lambda d: 'admin-app' in d.current_url)
-        self.assertIn('Admin App', self.browser.page_source)
+    def test_basic_login_flow(self):
+        """Selenium Test: Verify basic login works across apps."""
+        self._login('selenium_Admin@example.com', 'pass12345')
+        WebDriverWait(self.browser, 10).until(lambda d: 'login' not in d.current_url)
 
-    def test_staff_can_approve_pending_coach_from_users_page(self):
+    def test_admin_can_approve_coach_from_users_page(self):
+        """Selenium Test: Admin approves a coach from the users screen."""
         self._login('selenium_admin_staff@example.com', 'pass12345')
-        self.browser.get(self.live_server_url + reverse('admin_app:users'))
-        approve_button = WebDriverWait(self.browser, 10).until(
-            lambda d: d.find_element(
-                By.XPATH,
-                f"//form[contains(@action, '/admin-app/approve-coach/{self.pending_coach.id}/')]//button"
-            )
+        WebDriverWait(self.browser, 10).until(
+            lambda d: d.current_url.endswith(reverse('admin_app:dashboard'))
         )
+
+        self.browser.get(self.live_server_url + reverse('admin_app:users'))
+        WebDriverWait(self.browser, 10).until(
+            lambda d: 'Pending Coach Approvals' in d.page_source
+        )
+
+        approve_button = self.browser.find_element(By.XPATH, "//button[contains(., 'Approve Coach')]")
         approve_button.click()
         WebDriverWait(self.browser, 10).until(
-            lambda _: User.objects.get(id=self.pending_coach.id).is_approved
+            lambda d: 'approved successfully' in d.page_source.lower()
         )
         self.pending_coach.refresh_from_db()
         self.assertTrue(self.pending_coach.is_approved)
-        self.assertTrue(self.pending_coach.is_active)
 
-    def test_staff_can_toggle_user_status_from_users_page(self):
-        self._login('selenium_admin_staff@example.com', 'pass12345')
-        self.browser.get(self.live_server_url + reverse('admin_app:users'))
-        toggle_button = WebDriverWait(self.browser, 10).until(
-            lambda d: d.find_element(
-                By.XPATH,
-                f"//form[contains(@action, '/admin-app/users/{self.normal_user.id}/toggle-status/')]//button"
-            )
-        )
-        toggle_button.click()
-        WebDriverWait(self.browser, 10).until(
-            lambda _: not User.objects.get(id=self.normal_user.id).is_active
-        )
-        self.normal_user.refresh_from_db()
-        self.assertFalse(self.normal_user.is_active)

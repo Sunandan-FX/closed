@@ -11,6 +11,7 @@ urlpatterns = [
     path('requests/<int:request_id>/<str:action>/', views.handle_request, name='handle_request'),
     path('athletes/', views.my_athletes, name='my_athletes'),
     path('athletes/<int:athlete_id>/', views.athlete_detail, name='athlete_detail'),
+    path('routine/create/', views.create_routine_select, name='create_routine_select'),
     path('athletes/<int:athlete_id>/routine/create/', views.create_routine, name='create_routine'),
     path('routine/<int:routine_id>/edit/', views.edit_routine, name='edit_routine'),
     path('routine/<int:routine_id>/delete/', views.delete_routine, name='delete_routine'),
